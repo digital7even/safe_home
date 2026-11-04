@@ -1,0 +1,27 @@
+{
+  "domain": "safe_home",
+  "name": "Safe Home",
+  "after_dependencies": [
+    "person",
+    "mobile_app",
+    "tts",
+    "persistent_notification"
+  ],
+  "codeowners": [
+    "@digital7even"
+  ],
+  "config_flow": true,
+  "dependencies": [
+    "frontend",
+    "http",
+    "lovelace",
+    "panel_custom",
+    "websocket_api"
+  ],
+  "documentation": "https://github.com/digital7even/safe_home",
+  "integration_type": "service",
+  "iot_class": "local_push",
+  "issue_tracker": "https://github.com/digital7even/safe_home/issues",
+  "requirements": [],
+  "version": "1.0.0"
+}

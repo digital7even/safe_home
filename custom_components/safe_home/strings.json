@@ -1,0 +1,251 @@
+{
+  "title": "Safe Home",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Set up Safe Home",
+        "description": "Welcome to Safe Home. Made with ❤️ in Germany by Digital7even.",
+        "data": {
+          "name": "Name",
+          "code": "PIN code (optional, min. 4 characters)",
+          "code_arm_required": "Require PIN for arming",
+          "notify_wrong_code": "Notify on wrong PIN"
+        }
+      },
+      "sensors": {
+        "title": "Sensors",
+        "description": "Choose which motion and door/window sensors are monitored in each mode.",
+        "data": {
+          "away_sensors": "Sensors for Away",
+          "night_sensors": "Sensors for Night",
+          "delayed_sensors": "Sensors with entry delay (e.g. front door)",
+          "open_sensor_policy": "Open sensors when arming",
+          "tamper_notify": "Notify when a sensor becomes unavailable"
+        }
+      },
+      "delays": {
+        "title": "Delays",
+        "description": "Times in seconds.",
+        "data": {
+          "exit_delay_away": "Exit delay Away",
+          "entry_delay_away": "Entry delay Away",
+          "exit_delay_night": "Exit delay Night",
+          "entry_delay_night": "Entry delay Night",
+          "trigger_time": "Alarm duration (siren), 0 = until disarmed",
+          "rearm_after_trigger": "Re-arm after alarm duration"
+        }
+      },
+      "actions": {
+        "title": "Alarm actions",
+        "description": "What should happen when Safe Home triggers?",
+        "data": {
+          "sirens": "Sirens / sounders",
+          "alarm_lights": "Alarm lights (turned on red)",
+          "notify_services": "Notification services",
+          "notify_state_changes": "Notify on arm/disarm",
+          "critical_notifications": "Send alarm as critical notification",
+          "notification_disarm_action": "'Disarm' button in alarm notification",
+          "cameras": "Cameras (snapshot in notification)",
+          "tts_entity": "Text-to-speech entity",
+          "media_players": "Speakers for announcements"
+        }
+      },
+      "automation": {
+        "title": "Automation",
+        "description": "Safe Home arms and disarms itself based on your persons' home zone.",
+        "data": {
+          "persons": "Persons for presence automation",
+          "auto_arm": "Arm automatically when everyone leaves",
+          "auto_arm_delay": "Delay before auto-arming",
+          "auto_disarm": "Disarm automatically when someone arrives",
+          "night_auto": "Activate night mode on schedule",
+          "night_start": "Night mode start",
+          "night_end": "Night mode end",
+          "night_only_when_home": "Night mode only if someone is home"
+        }
+      }
+    },
+    "error": {
+      "code_too_short": "PIN must be at least 4 characters.",
+      "no_sensors": "Select at least one sensor for Away or Night."
+    },
+    "abort": {}
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Safe Home",
+        "description": "What do you want to change?",
+        "menu_options": {
+          "sensors": "Sensors",
+          "delays": "Delays",
+          "actions": "Alarm actions",
+          "automation": "Automation",
+          "security": "Security / PIN"
+        }
+      },
+      "sensors": {
+        "title": "Sensors",
+        "description": "Choose which motion and door/window sensors are monitored in each mode.",
+        "data": {
+          "away_sensors": "Sensors for Away",
+          "night_sensors": "Sensors for Night",
+          "delayed_sensors": "Sensors with entry delay (e.g. front door)",
+          "open_sensor_policy": "Open sensors when arming",
+          "tamper_notify": "Notify when a sensor becomes unavailable"
+        }
+      },
+      "delays": {
+        "title": "Delays",
+        "description": "Times in seconds.",
+        "data": {
+          "exit_delay_away": "Exit delay Away",
+          "entry_delay_away": "Entry delay Away",
+          "exit_delay_night": "Exit delay Night",
+          "entry_delay_night": "Entry delay Night",
+          "trigger_time": "Alarm duration (siren), 0 = until disarmed",
+          "rearm_after_trigger": "Re-arm after alarm duration"
+        }
+      },
+      "actions": {
+        "title": "Alarm actions",
+        "description": "What should happen when Safe Home triggers?",
+        "data": {
+          "sirens": "Sirens / sounders",
+          "alarm_lights": "Alarm lights (turned on red)",
+          "notify_services": "Notification services",
+          "notify_state_changes": "Notify on arm/disarm",
+          "critical_notifications": "Send alarm as critical notification",
+          "notification_disarm_action": "'Disarm' button in alarm notification",
+          "cameras": "Cameras (snapshot in notification)",
+          "tts_entity": "Text-to-speech entity",
+          "media_players": "Speakers for announcements"
+        }
+      },
+      "automation": {
+        "title": "Automation",
+        "description": "Safe Home arms and disarms itself based on your persons' home zone.",
+        "data": {
+          "persons": "Persons for presence automation",
+          "auto_arm": "Arm automatically when everyone leaves",
+          "auto_arm_delay": "Delay before auto-arming",
+          "auto_disarm": "Disarm automatically when someone arrives",
+          "night_auto": "Activate night mode on schedule",
+          "night_start": "Night mode start",
+          "night_end": "Night mode end",
+          "night_only_when_home": "Night mode only if someone is home"
+        }
+      },
+      "security": {
+        "title": "Security",
+        "description": "PIN code for dashboard use.",
+        "data": {
+          "code": "PIN code (optional, min. 4 characters)",
+          "code_arm_required": "Require PIN for arming",
+          "notify_wrong_code": "Notify on wrong PIN"
+        }
+      }
+    },
+    "error": {
+      "code_too_short": "PIN must be at least 4 characters.",
+      "no_sensors": "Select at least one sensor for Away or Night."
+    }
+  },
+  "selector": {
+    "open_policy": {
+      "options": {
+        "bypass": "Bypass and notify",
+        "block": "Block arming and notify"
+      }
+    }
+  },
+  "entity": {
+    "alarm_control_panel": {
+      "safe_home": {
+        "state": {
+          "disarmed": "Home",
+          "armed_away": "Away",
+          "armed_night": "Night",
+          "arming": "Arming",
+          "pending": "Pending",
+          "triggered": "ALARM"
+        }
+      }
+    },
+    "switch": {
+      "auto_mode": {
+        "name": "Presence automation"
+      },
+      "night_auto": {
+        "name": "Night automation"
+      }
+    },
+    "sensor": {
+      "last_event": {
+        "name": "Last event"
+      },
+      "people_home": {
+        "name": "People home"
+      },
+      "last_alarm": {
+        "name": "Last alarm"
+      }
+    },
+    "binary_sensor": {
+      "open_sensors": {
+        "name": "Open sensors"
+      },
+      "siren_active": {
+        "name": "Siren active"
+      }
+    }
+  },
+  "exceptions": {
+    "invalid_code": {
+      "message": "Invalid PIN code."
+    },
+    "arm_blocked": {
+      "message": "Arming not possible – sensors open or alarm active."
+    }
+  },
+  "services": {
+    "panic": {
+      "name": "Panic alarm",
+      "description": "Triggers an alarm immediately.",
+      "fields": {
+        "entity_id": {
+          "name": "Alarm panel",
+          "description": "Empty = all"
+        }
+      }
+    },
+    "silence": {
+      "name": "Silence siren",
+      "description": "Turns sirens off, alarm stays active.",
+      "fields": {
+        "entity_id": {
+          "name": "Alarm panel",
+          "description": "Empty = all"
+        }
+      }
+    },
+    "set_auto_mode": {
+      "name": "Set automation",
+      "description": "Enable or disable automations.",
+      "fields": {
+        "entity_id": {
+          "name": "Alarm panel",
+          "description": "Empty = all"
+        },
+        "enabled": {
+          "name": "Presence automation",
+          "description": "On or off"
+        },
+        "night": {
+          "name": "Night automation",
+          "description": "Optional"
+        }
+      }
+    }
+  }
+}
