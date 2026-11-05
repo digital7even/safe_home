@@ -1,0 +1,43 @@
+panic:
+  fields:
+    entity_id:
+      selector:
+        entity:
+          integration: safe_home
+          domain: alarm_control_panel
+          multiple: true
+
+silence:
+  fields:
+    entity_id:
+      selector:
+        entity:
+          integration: safe_home
+          domain: alarm_control_panel
+          multiple: true
+
+skip_exit_delay:
+  fields:
+    entity_id:
+      selector:
+        entity:
+          integration: safe_home
+          domain: alarm_control_panel
+          multiple: true
+
+set_auto_mode:
+  fields:
+    entity_id:
+      selector:
+        entity:
+          integration: safe_home
+          domain: alarm_control_panel
+          multiple: true
+    enabled:
+      required: true
+      default: true
+      selector:
+        boolean:
+    night:
+      selector:
+        boolean:

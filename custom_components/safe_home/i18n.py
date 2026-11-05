@@ -1,0 +1,209 @@
+"""Meldungen von Safe Home auf Deutsch oder Englisch (nach der Systemsprache von Home Assistant).
+
+Die Texte sind auf Deutsch geschrieben und dienen als Schlüssel. Bei jeder anderen Sprache als
+Deutsch wird die englische Fassung verwendet. Platzhalter: {name}.
+"""
+
+from __future__ import annotations
+
+from homeassistant.core import HomeAssistant
+
+EN: dict[str, str] = {
+    # Modi
+    "Zuhause": "Home",
+    "Unterwegs": "Away",
+    "Nacht": "Night",
+    # Auslöser / Quellen
+    "Manuell": "Manual",
+    "Manuell ausgelöst": "Triggered manually",
+    "Sensor": "Sensor",
+    "Automatik": "Automation",
+    "Automatik: Alle unterwegs": "Automation: everyone away",
+    "Automatik: {name} ist zuhause": "Automation: {name} is home",
+    "Automatik: Nachtzeit": "Automation: night time",
+    "Automatik: Guten Morgen": "Automation: good morning",
+    "Benachrichtigung": "Notification",
+    "Dienst": "Service",
+    "Dienst / Panik-Taste": "Service / panic button",
+    "Panik-Taste": "Panic button",
+    "Unscharf schalten": "Disarm",
+    # Protokoll
+    "Nach Neustart wiederhergestellt: {mode}": "Restored after restart: {mode}",
+    "Scharfschalten nicht möglich: Alarm/Eingangsverzögerung aktiv": "Arming not possible: alarm/entry delay active",
+    "{mode} blockiert – offen: {names}": "{mode} blocked – open: {names}",
+    "Überbrückt (offen): {names}": "Bypassed (open): {names}",
+    "{mode} wird in {delay} s aktiviert ({source})": "{mode} will be activated in {delay} s ({source})",
+    "Zuhause – unscharf ({source})": "Home – disarmed ({source})",
+    "ALARM: {cause}": "ALARM: {cause}",
+    "Panikalarm ({source})": "Panic alarm ({source})",
+    "Sirene stummgeschaltet ({source})": "Siren silenced ({source})",
+    "Falscher PIN bei: {action}": "Wrong PIN for: {action}",
+    "Testbenachrichtigung gesendet": "Test notification sent",
+    "Sirenentest (3 Sekunden)": "Siren test (3 seconds)",
+    "Anwesenheits-Automatik an": "Presence automation on",
+    "Anwesenheits-Automatik aus": "Presence automation off",
+    "Nacht-Automatik an": "Night automation on",
+    "Nacht-Automatik aus": "Night automation off",
+    "{mode} – scharf ({source})": "{mode} – armed ({source})",
+    "Eingangsverzögerung abgelaufen": "Entry delay expired",
+    "Alarmzeit abgelaufen – wieder {mode}": "Alarm time expired – {mode} again",
+    "Alarmzeit abgelaufen – Sirene aus, Alarm bleibt bestehen": "Alarm time expired – siren off, alarm remains active",
+    "Sensor nicht erreichbar: {name}": "Sensor unavailable: {name}",
+    "{name} geschlossen – wird wieder überwacht": "{name} closed – monitored again",
+    "{name} ausgelöst": "{name} triggered",
+    "Eingangsverzögerung {delay} s: {name}": "Entry delay {delay} s: {name}",
+    "Alle haben das Haus verlassen (zuletzt {name})": "Everyone has left the house (last: {name})",
+    "Automatisches Scharfschalten in {delay} s": "Arming automatically in {delay} s",
+    # Benachrichtigungen
+    "⚠️ Scharfschalten blockiert": "⚠️ Arming blocked",
+    "{mode} konnte nicht aktiviert werden ({source}). Offen: {names}": "{mode} could not be activated ({source}). Open: {names}",
+    "⚠️ Sensoren überbrückt": "⚠️ Sensors bypassed",
+    "Beim Aktivieren von {mode} waren offen: {names}. Sie werden überwacht, sobald sie geschlossen sind.":
+        "When activating {mode}, these were open: {names}. They will be monitored as soon as they are closed.",
+    "🏠 Safe Home unscharf": "🏠 Safe Home disarmed",
+    "Modus Zuhause aktiv. Ausgelöst durch: {source}": "Home mode active. Triggered by: {source}",
+    "🚨 Safe Home Alarm": "🚨 Safe Home alarm",
+    "🚨 ALARM – Safe Home": "🚨 ALARM – Safe Home",
+    "{cause}. Modus: {mode}.": "{cause}. Mode: {mode}.",
+    "🔐 Falscher PIN": "🔐 Wrong PIN",
+    "Es wurde ein falscher PIN eingegeben ({action}).": "A wrong PIN was entered ({action}).",
+    "🧪 Safe Home Test": "🧪 Safe Home test",
+    "Diese Testbenachrichtigung kommt von deiner Alarmanlage.": "This test notification comes from your alarm system.",
+    "Alarmanlage ist scharf ({source}). {count} Sensoren aktiv.": "Alarm system armed ({source}). {count} sensors active.",
+    "📡 Sensor nicht erreichbar": "📡 Sensor unavailable",
+    "{name} meldet sich nicht mehr, während Safe Home scharf ist.": "{name} is no longer responding while Safe Home is armed.",
+    "Sirene stumm": "Silence siren",
+    "Entschärfen": "Disarm",
+    # Ansagen
+    "Alarm! {cause}. Die Bewohner werden benachrichtigt.": "Alarm! {cause}. The residents are being notified.",
+    "Bitte Alarmanlage innerhalb von {delay} Sekunden ausschalten.": "Please disarm the alarm system within {delay} seconds.",
+    "Dies ist ein Test von Safe Home.": "This is a test of Safe Home.",
+    # Tests (Rückmeldung an die Safe-Home-Seite)
+    "Kein Benachrichtigungsdienst ausgewählt": "No notification service selected",
+    "Keine Sirene ausgewählt": "No siren selected",
+    "Während eines Alarms nicht möglich": "Not possible during an alarm",
+    "Sirene läuft 3 Sekunden": "Siren running for 3 seconds",
+    "Sprachausgabe und Lautsprecher auswählen": "Select text-to-speech and speakers",
+    "Testansage gesendet": "Test announcement sent",
+    "Kein Alarmlicht ausgewählt": "No alarm light selected",
+    "Alarmlicht 5 Sekunden an": "Alarm light on for 5 seconds",
+    "Unbekannter Test": "Unknown test",
+    # Prüfung der Einstellungen / Seite in der Seitenleiste
+    "Ungültige Entität": "Invalid entity",
+    "Ungültige Entität: {item}": "Invalid entity: {item}",
+    "Bitte mindestens einen Sensor für Unterwegs oder Nacht auswählen": "Please select at least one sensor for Away or Night",
+    "Bitte eine Zahl eingeben": "Please enter a number",
+    "Erlaubt: 0 bis {limit} Sekunden": "Allowed: 0 to {limit} seconds",
+    "Uhrzeit im Format HH:MM": "Time in the format HH:MM",
+    "Der PIN muss mindestens 4 Zeichen lang sein": "The PIN must be at least 4 characters long",
+    "Instanz nicht gefunden": "Instance not found",
+    "Instanz ist nicht geladen": "Instance is not loaded",
+    # Tag/Nacht-Automatik
+    "Automatik: {name} kommt nach Hause": "Automation: {name} is coming home",
+    "Nachtmodus wird in {minutes} Minuten wieder aktiviert": "Night mode will be re-activated in {minutes} minutes",
+    "Automatik: wieder Nachtruhe": "Automation: back to night mode",
+    "Automatik: Nachtzeit – niemand zuhause": "Automation: night time – nobody home",
+    "Nachtzeit – niemand zuhause, kein Nachtmodus": "Night time – nobody home, no night mode",
+    "Automatik: Morgen – niemand zuhause": "Automation: morning – nobody home",
+    "Nachtende – niemand zuhause, Nachtmodus bleibt aktiv": "End of night – nobody home, night mode stays active",
+    "Einstellungen „Automatisch scharf“ und „Automatisch unscharf“ eingeschaltet": "Settings “Arm automatically” and “Disarm automatically” switched on",
+    "Mindestens eine Funktion auswählen – zum Ausschalten der Home-Zone-Automatik den Schalter verwenden": "Select at least one function – use the switch to turn the home-zone automation off",
+    # Alarmdauer / akustischer Alarm
+    "{n} Min.": "{n} min",
+    "Akustischer Alarm nach {d} beendet – Alarm bleibt still bestehen": "Audible alarm ended after {d} – the alarm stays active silently",
+    "Ausgangsverzögerung übersprungen ({source})": "Exit delay skipped ({source})",
+    # Teilbereiche
+    "Nach Neustart wiederhergestellt: scharf": "Restored after restart: armed",
+    "Scharfschalten blockiert – offen: {names}": "Arming blocked – open: {names}",
+    "⚠️ {zone}: Scharfschalten blockiert": "⚠️ {zone}: arming blocked",
+    "Offen: {names} ({source})": "Open: {names} ({source})",
+    "wird in {delay} s scharf ({source})": "arming in {delay} s ({source})",
+    "scharf ({source})": "armed ({source})",
+    "unscharf ({source})": "disarmed ({source})",
+    "Akustischer Alarm beendet – Alarm bleibt still bestehen": "Audible alarm ended – the alarm stays active silently",
+    "Alarmzeit abgelaufen – wieder scharf": "Alarm time expired – armed again",
+    "📡 {zone}: Sensor nicht erreichbar": "📡 {zone}: sensor unavailable",
+    "{name} meldet sich nicht mehr, während {zone} scharf ist.": "{name} is no longer responding while {zone} is armed.",
+    "Zeitplan: jemand ist da – bleibt unscharf": "Schedule: someone is there – stays disarmed",
+    "Zeitplan": "Schedule",
+    "Alarm im Bereich {zone}! {cause}.": "Alarm in area {zone}! {cause}.",
+    "🚨 Safe Home Alarm – {zone}": "🚨 Safe Home alarm – {zone}",
+    "🚨 ALARM – {zone}": "🚨 ALARM – {zone}",
+    "{cause}. Bereich: {zone}.": "{cause}. Area: {zone}.",
+    "Scharf": "Armed",
+    "Höchstens 3 Teilbereiche": "At most 3 partitions",
+    "Bitte für jeden Teilbereich einen Namen eingeben": "Please enter a name for each partition",
+    "Teilbereich {n}": "Partition {n}",
+    "{name}: Verzögerung 0 bis 3600 Sekunden": "{name}: delay 0 to 3600 seconds",
+    "{name}: Uhrzeit im Format HH:MM": "{name}: time in the format HH:MM",
+    "{name}: mindestens einen Wochentag wählen": "{name}: choose at least one weekday",
+    "{name}: Personen für die Anwesenheit auswählen": "{name}: choose people for presence",
+    # Haushalt
+    "Haushalt: {name} – {state}": "Household: {name} – {state}",
+    "💧 Haushalt: {name}": "💧 Household: {name}",
+    "{name}: {state} erkannt ({time} Uhr). Bitte prüfen!": "{name}: {state} detected ({time}). Please check!",
+    "Haushalt: {name} wieder {state}": "Household: {name} {state} again",
+    "✅ Haushalt: {name}": "✅ Household: {name}",
+    "Entwarnung: {name} ist wieder {state} ({time} Uhr).": "All clear: {name} is {state} again ({time}).",
+    "Trocken": "Dry", "Feucht": "Wet", "Kein Gas": "No gas", "Gas erkannt": "Gas detected",
+    "Kein Rauch": "No smoke", "Rauch erkannt": "Smoke detected", "Kein CO": "No CO", "CO erkannt": "CO detected",
+    "OK": "OK", "Problem": "Problem", "Normal": "Normal", "Kalt": "Cold", "Heiß": "Hot",
+    "Geschlossen": "Closed", "Offen": "Open", "Aus": "Off", "Läuft": "Running", "Strom": "Power",
+    "Ausgesteckt": "Unplugged", "Eingesteckt": "Plugged in", "Batterie schwach": "Battery low", "An": "On",
+    # Akustischer Alarm
+    "Stiller Alarm – Sirene bleibt aus: {reason}": "Silent alarm – siren stays off: {reason}",
+    "im Modus {mode} ist der akustische Alarm ausgeschaltet": "the audible alarm is switched off in {mode} mode",
+    "außerhalb des Zeitfensters {start}–{end} Uhr": "outside the time window {start}–{end}",
+    "{names} löst keinen akustischen Alarm aus": "{names} does not trigger the audible alarm",
+    "Sirene ausgelöst durch {name}": "Siren triggered by {name}",
+    # WhatsApp
+    "Unbekannter Melder": "Unknown sensor",
+    "🚨 ALARM AUSGELÖST! 🚨\nAuslöser: {sensor}\nZeitpunkt: {date} um {time} Uhr\nModus: {mode}\nBitte sofort prüfen!":
+        "🚨 ALARM TRIGGERED! 🚨\nTriggered by: {sensor}\nTime: {date} at {time}\nMode: {mode}\nPlease check immediately!",
+    "⏰ Erinnerung: Der Alarm ist seit {minutes} Minuten nicht zurückgestellt.": "⏰ Reminder: the alarm has not been reset for {minutes} minutes.",
+    "✅ Entwarnung: {name} wurde um {time} Uhr ausgeschaltet ({source}).": "✅ All clear: {name} was disarmed at {time} ({source}).",
+    "WhatsApp an {name} fehlgeschlagen: {info}": "WhatsApp to {name} failed: {info}",
+    "WhatsApp-Alarm an {name} gesendet": "WhatsApp alarm sent to {name}",
+    "Alarm nicht zurückgestellt – WhatsApp an {name}": "Alarm not reset – WhatsApp to {name}",
+    "Kein WhatsApp-Empfänger eingetragen": "No WhatsApp recipient entered",
+    "Noch Beispieldaten – bitte echte Nummer und TextMeBot-API-Key eintragen": "Still example data – please enter a real number and TextMeBot API key",
+    "🧪 Safe Home: Test-Nachricht über WhatsApp. Diese Nummer erhält Alarme von „{name}“.": "🧪 Safe Home: test message via WhatsApp. This number receives alarms from “{name}”.",
+    "WhatsApp-Test: {ok} von {total} gesendet": "WhatsApp test: {ok} of {total} sent",
+    "WhatsApp fehlgeschlagen an: {names} – Details im Protokoll": "WhatsApp failed for: {names} – see the log for details",
+    "WhatsApp-Test gesendet an: {names}": "WhatsApp test sent to: {names}",
+    "Bitte mindestens einen WhatsApp-Empfänger eintragen": "Please enter at least one WhatsApp recipient",
+    "{name}: Nummer bitte international angeben, z. B. +491701234567": "{name}: please enter the number in international format, e.g. +491701234567",
+    "{name}: TextMeBot-API-Key fehlt": "{name}: TextMeBot API key missing",
+    "{name}: Wartezeit 0 bis 240 Minuten": "{name}: delay 0 to 240 minutes",
+    "Höchstens 10 WhatsApp-Empfänger": "At most 10 WhatsApp recipients",
+    # Dashboard-Ressource
+    "Wird eingetragen …": "Registering …",
+    "Dashboard-Verwaltung ist noch nicht bereit – neuer Versuch folgt.": "Dashboard management is not ready yet – retrying.",
+    "Deine Dashboard-Ressourcen werden per YAML verwaltet und können nicht automatisch ergänzt werden. Bitte den Eintrag unten in deine YAML-Konfiguration übernehmen.":
+        "Your dashboard resources are managed in YAML and cannot be added automatically. Please copy the entry below into your YAML configuration.",
+    "Ressourcen sind noch nicht geladen – neuer Versuch folgt.": "Resources are not loaded yet – retrying.",
+    "Die Karte ist als Dashboard-Ressource eingetragen.": "The card is registered as a dashboard resource.",
+    "Fehler beim Eintragen: {err}": "Error while registering: {err}",
+    "Die Dashboard-Verwaltung war beim Start nicht erreichbar. Bitte „Jetzt eintragen“ tippen.":
+        "Dashboard management was not reachable at startup. Please tap “Register now”.",
+}
+
+
+def is_german(hass: HomeAssistant | None) -> bool:
+    lang = str(getattr(getattr(hass, "config", None), "language", "") or "").lower()
+    return lang.startswith("de")
+
+
+def tr(hass: HomeAssistant | None, de: str, **kwargs) -> str:
+    """Text in der Systemsprache (Deutsch, sonst Englisch)."""
+    text = de if is_german(hass) else EN.get(de, de)
+    if kwargs:
+        try:
+            return text.format(**kwargs)
+        except (KeyError, IndexError, ValueError):
+            return text
+    return text
+
+
+def date_format(hass: HomeAssistant | None) -> str:
+    return "%d.%m.%Y %H:%M:%S" if is_german(hass) else "%Y-%m-%d %H:%M:%S"

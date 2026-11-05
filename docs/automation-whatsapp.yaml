@@ -1,0 +1,88 @@
+# ---------------------------------------------------------------------------------------------
+# Safe Home – WhatsApp bei Alarm (als Automation)
+#
+# Hinweis: Safe Home kann das auch ohne Automation – Seitenleiste „Safe Home“ → Alarm-Aktionen →
+# „WhatsApp über TextMeBot“. Bitte nur EINE der beiden Varianten verwenden, sonst kommt jede
+# Nachricht doppelt.
+#
+# Alle Nummern und API-Keys unten sind Beispieldaten und müssen ersetzt werden.
+# ---------------------------------------------------------------------------------------------
+
+# 1) In die configuration.yaml (danach Home Assistant neu starten).
+#    urlencode ist wichtig: Ohne Kodierung würde das „+“ der Nummer als Leerzeichen ankommen.
+rest_command:
+  whatsapp_send:
+    url: >-
+      https://api.textmebot.com/send.php?recipient={{ recipient | urlencode }}&apikey={{ apikey | urlencode }}&text={{ text | urlencode }}
+    method: get
+    timeout: 30
+
+# 2) Automation (Einstellungen → Automationen → Neu → ⋮ → „In YAML bearbeiten“ und einfügen)
+alias: Safe Home – WhatsApp bei Alarm
+description: >
+  Sendet bei einem Alarm von Safe Home die tatsächlich ausgelösten Melder per WhatsApp an den
+  ersten Empfänger. Wird der Alarm nicht innerhalb von 5 Minuten ausgeschaltet, wird zusätzlich
+  der zweite Empfänger benachrichtigt.
+triggers:
+  - trigger: state
+    entity_id: alarm_control_panel.safe_home
+    to: triggered
+conditions: []
+actions:
+  - variables:
+      # Optional: eigene Namen für die Melder (sonst wird der Name aus Home Assistant verwendet)
+      sensor_namen:
+        binary_sensor.balkonture: Balkontür
+        binary_sensor.kinderzimmer_mitte: Kinderzimmer
+        binary_sensor.kuchen_fenster: Küchenfenster
+        binary_sensor.schlafzimmer_fenster: Schlafzimmerfenster
+        binary_sensor.wohnungsture_status: Wohnungstür
+      # Safe Home liefert die tatsächlich ausgelösten Melder im Attribut „triggered_sensors“
+      ausgeloest: >-
+        {{ state_attr('alarm_control_panel.safe_home', 'triggered_sensors') | default([], true) }}
+      ausgeloste_melder: >-
+        {% if ausgeloest %}
+          {%- for sensor in ausgeloest -%}
+            {{ sensor_namen.get(sensor, state_attr(sensor, 'friendly_name') | default(sensor, true)) }}{% if not loop.last %}, {% endif %}
+          {%- endfor -%}
+        {% else %}
+          {{- state_attr('alarm_control_panel.safe_home', 'trigger_cause') | default('Unbekannter Melder', true) -}}
+        {% endif %}
+      nachricht: |-
+        🚨 ALARM AUSGELÖST! 🚨
+        Auslöser: {{ ausgeloste_melder | trim }}
+        Zeitpunkt: {{ now().strftime('%d.%m.%Y um %H:%M Uhr') }}
+        Bitte sofort prüfen!
+
+  # Erster Empfänger – sofort
+  - action: rest_command.whatsapp_send
+    data:
+      recipient: "+491701234567"
+      apikey: BeispielKey123
+      text: "{{ nachricht }}"
+
+  # 5 Minuten warten, ob die Alarmanlage ausgeschaltet wird
+  - wait_for_trigger:
+      - trigger: state
+        entity_id: alarm_control_panel.safe_home
+        to: disarmed
+    timeout:
+      minutes: 5
+    continue_on_timeout: true
+
+  # Nur weiter, wenn NICHT ausgeschaltet wurde. (Safe Home schaltet sich nach Ablauf der
+  # Alarmdauer wieder scharf – deshalb wird hier auf „nicht ausgeschaltet“ geprüft und nicht
+  # auf den Zustand „triggered“.)
+  - condition: template
+    value_template: "{{ wait.trigger is none }}"
+
+  # Zweiter Empfänger – Eskalation
+  - action: rest_command.whatsapp_send
+    data:
+      recipient: "+491769876543"
+      apikey: BeispielKey456
+      text: |-
+        ⏰ Erinnerung: Der Alarm ist seit 5 Minuten nicht zurückgestellt.
+
+        {{ nachricht }}
+mode: single

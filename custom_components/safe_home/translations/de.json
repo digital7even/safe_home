@@ -1,0 +1,263 @@
+{
+  "title": "Safe Home",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Safe Home einrichten",
+        "description": "Willkommen bei Safe Home – deiner Alarmanlage für Home Assistant. Mit ❤️ entwickelt in Deutschland von Digital7even.",
+        "data": {
+          "name": "Name",
+          "code": "PIN-Code (optional, mind. 4 Zeichen)",
+          "code_arm_required": "PIN auch zum Scharfschalten verlangen",
+          "notify_wrong_code": "Bei falschem PIN benachrichtigen"
+        }
+      },
+      "sensors": {
+        "title": "Sensoren",
+        "description": "Wähle, welche Bewegungsmelder und Tür-/Fensterkontakte in welchem Modus überwacht werden.",
+        "data": {
+          "away_sensors": "Sensoren für Unterwegs (alle überwachten)",
+          "night_sensors": "Sensoren für Nacht (z. B. nur Türen & Erdgeschoss)",
+          "delayed_sensors": "Sensoren mit Eingangsverzögerung (z. B. Haustür)",
+          "open_sensor_policy": "Offene Sensoren beim Scharfschalten",
+          "tamper_notify": "Melden, wenn ein Sensor nicht mehr erreichbar ist"
+        }
+      },
+      "delays": {
+        "title": "Verzögerungen",
+        "description": "Zeiten in Sekunden. Die Ausgangsverzögerung gibt dir Zeit, das Haus zu verlassen – die Eingangsverzögerung Zeit, beim Heimkommen auszuschalten.",
+        "data": {
+          "exit_delay_away": "Ausgangsverzögerung Unterwegs",
+          "entry_delay_away": "Eingangsverzögerung Unterwegs",
+          "exit_delay_night": "Ausgangsverzögerung Nacht",
+          "entry_delay_night": "Eingangsverzögerung Nacht",
+          "trigger_time": "Alarmdauer – so lange bleibt der Alarm aktiv, 0 = bis zum Ausschalten",
+          "siren_duration": "Dauer des akustischen Alarms (Sirene), 0 = gesamte Alarmdauer",
+          "rearm_after_trigger": "Nach Ablauf der Alarmdauer wieder scharf schalten"
+        }
+      },
+      "actions": {
+        "title": "Aktionen bei Alarm",
+        "description": "Was soll passieren, wenn Safe Home auslöst?",
+        "data": {
+          "sirens": "Sirenen / akustische Signalgeber",
+          "alarm_lights": "Alarmbeleuchtung (wird rot eingeschaltet)",
+          "notify_services": "Benachrichtigungsdienste (z. B. mobile_app_mein_handy)",
+          "notify_state_changes": "Auch bei Scharf-/Unscharfschaltung benachrichtigen",
+          "critical_notifications": "Alarm als kritische Benachrichtigung (umgeht Lautlos)",
+          "notification_disarm_action": "„Entschärfen“-Taste in der Alarm-Benachrichtigung",
+          "cameras": "Kameras (Schnappschuss in der Benachrichtigung)",
+          "tts_entity": "Sprachausgabe-Dienst (TTS)",
+          "media_players": "Lautsprecher für Sprachausgabe"
+        }
+      },
+      "automation": {
+        "title": "Automatik",
+        "description": "Safe Home schaltet sich anhand der Home-Zone deiner Personen selbst scharf und unscharf.",
+        "data": {
+          "persons": "Personen für die Anwesenheits-Automatik",
+          "auto_arm": "Automatisch scharf, wenn alle die Home-Zone verlassen",
+          "auto_arm_delay": "Wartezeit vor automatischem Scharfschalten",
+          "auto_disarm": "Automatisch unscharf, wenn jemand nach Hause kommt",
+          "night_auto": "Nachtmodus zeitgesteuert aktivieren",
+          "night_start": "Nachtmodus Beginn",
+          "night_end": "Nachtmodus Ende",
+          "night_only_when_home": "Nachtmodus nur, wenn jemand zuhause ist – sonst Unterwegs"
+        }
+      }
+    },
+    "error": {
+      "code_too_short": "Der PIN muss mindestens 4 Zeichen lang sein.",
+      "no_sensors": "Bitte mindestens einen Sensor für Unterwegs oder Nacht auswählen."
+    },
+    "abort": {}
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Safe Home",
+        "description": "Was möchtest du anpassen?",
+        "menu_options": {
+          "sensors": "Sensoren",
+          "delays": "Verzögerungen",
+          "actions": "Aktionen bei Alarm",
+          "automation": "Automatik (Home-Zone & Nacht)",
+          "security": "Sicherheit / PIN"
+        }
+      },
+      "sensors": {
+        "title": "Sensoren",
+        "description": "Wähle, welche Bewegungsmelder und Tür-/Fensterkontakte in welchem Modus überwacht werden.",
+        "data": {
+          "away_sensors": "Sensoren für Unterwegs (alle überwachten)",
+          "night_sensors": "Sensoren für Nacht (z. B. nur Türen & Erdgeschoss)",
+          "delayed_sensors": "Sensoren mit Eingangsverzögerung (z. B. Haustür)",
+          "open_sensor_policy": "Offene Sensoren beim Scharfschalten",
+          "tamper_notify": "Melden, wenn ein Sensor nicht mehr erreichbar ist"
+        }
+      },
+      "delays": {
+        "title": "Verzögerungen",
+        "description": "Zeiten in Sekunden. Die Ausgangsverzögerung gibt dir Zeit, das Haus zu verlassen – die Eingangsverzögerung Zeit, beim Heimkommen auszuschalten.",
+        "data": {
+          "exit_delay_away": "Ausgangsverzögerung Unterwegs",
+          "entry_delay_away": "Eingangsverzögerung Unterwegs",
+          "exit_delay_night": "Ausgangsverzögerung Nacht",
+          "entry_delay_night": "Eingangsverzögerung Nacht",
+          "trigger_time": "Alarmdauer – so lange bleibt der Alarm aktiv, 0 = bis zum Ausschalten",
+          "siren_duration": "Dauer des akustischen Alarms (Sirene), 0 = gesamte Alarmdauer",
+          "rearm_after_trigger": "Nach Ablauf der Alarmdauer wieder scharf schalten"
+        }
+      },
+      "actions": {
+        "title": "Aktionen bei Alarm",
+        "description": "Was soll passieren, wenn Safe Home auslöst?",
+        "data": {
+          "sirens": "Sirenen / akustische Signalgeber",
+          "alarm_lights": "Alarmbeleuchtung (wird rot eingeschaltet)",
+          "notify_services": "Benachrichtigungsdienste (z. B. mobile_app_mein_handy)",
+          "notify_state_changes": "Auch bei Scharf-/Unscharfschaltung benachrichtigen",
+          "critical_notifications": "Alarm als kritische Benachrichtigung (umgeht Lautlos)",
+          "notification_disarm_action": "„Entschärfen“-Taste in der Alarm-Benachrichtigung",
+          "cameras": "Kameras (Schnappschuss in der Benachrichtigung)",
+          "tts_entity": "Sprachausgabe-Dienst (TTS)",
+          "media_players": "Lautsprecher für Sprachausgabe"
+        }
+      },
+      "automation": {
+        "title": "Automatik",
+        "description": "Safe Home schaltet sich anhand der Home-Zone deiner Personen selbst scharf und unscharf.",
+        "data": {
+          "persons": "Personen für die Anwesenheits-Automatik",
+          "auto_arm": "Automatisch scharf, wenn alle die Home-Zone verlassen",
+          "auto_arm_delay": "Wartezeit vor automatischem Scharfschalten",
+          "auto_disarm": "Automatisch unscharf, wenn jemand nach Hause kommt",
+          "night_auto": "Nachtmodus zeitgesteuert aktivieren",
+          "night_start": "Nachtmodus Beginn",
+          "night_end": "Nachtmodus Ende",
+          "night_only_when_home": "Nachtmodus nur, wenn jemand zuhause ist – sonst Unterwegs"
+        }
+      },
+      "security": {
+        "title": "Sicherheit",
+        "description": "PIN-Code für die Bedienung über das Dashboard.",
+        "data": {
+          "code": "PIN-Code (optional, mind. 4 Zeichen)",
+          "code_arm_required": "PIN auch zum Scharfschalten verlangen",
+          "notify_wrong_code": "Bei falschem PIN benachrichtigen"
+        }
+      }
+    },
+    "error": {
+      "code_too_short": "Der PIN muss mindestens 4 Zeichen lang sein.",
+      "no_sensors": "Bitte mindestens einen Sensor für Unterwegs oder Nacht auswählen."
+    }
+  },
+  "selector": {
+    "open_policy": {
+      "options": {
+        "bypass": "Überbrücken und melden (Sensor wird überwacht, sobald er geschlossen ist)",
+        "block": "Scharfschalten verhindern und melden"
+      }
+    }
+  },
+  "entity": {
+    "alarm_control_panel": {
+      "safe_home": {
+        "state": {
+          "disarmed": "Zuhause",
+          "armed_away": "Unterwegs",
+          "armed_night": "Nacht",
+          "arming": "Wird scharf geschaltet",
+          "pending": "Eingangsverzögerung",
+          "triggered": "ALARM"
+        }
+      }
+    },
+    "switch": {
+      "auto_mode": {
+        "name": "Anwesenheits-Automatik"
+      },
+      "night_auto": {
+        "name": "Nacht-Automatik"
+      }
+    },
+    "sensor": {
+      "last_event": {
+        "name": "Letztes Ereignis"
+      },
+      "people_home": {
+        "name": "Personen zuhause"
+      },
+      "last_alarm": {
+        "name": "Letzter Alarm"
+      }
+    },
+    "binary_sensor": {
+      "open_sensors": {
+        "name": "Offene Sensoren"
+      },
+      "siren_active": {
+        "name": "Sirene aktiv"
+      }
+    }
+  },
+  "exceptions": {
+    "invalid_code": {
+      "message": "Falscher PIN-Code."
+    },
+    "arm_blocked": {
+      "message": "Scharfschalten nicht möglich – Sensoren offen oder Alarm aktiv. Details im Protokoll."
+    }
+  },
+  "services": {
+    "panic": {
+      "name": "Panikalarm",
+      "description": "Löst sofort einen Alarm aus – unabhängig vom Modus.",
+      "fields": {
+        "entity_id": {
+          "name": "Alarmanlage",
+          "description": "Leer = alle Safe-Home-Instanzen"
+        }
+      }
+    },
+    "silence": {
+      "name": "Sirene stummschalten",
+      "description": "Schaltet die Sirenen aus, der Alarm bleibt bestehen.",
+      "fields": {
+        "entity_id": {
+          "name": "Alarmanlage",
+          "description": "Leer = alle Safe-Home-Instanzen"
+        }
+      }
+    },
+    "set_auto_mode": {
+      "name": "Automatik schalten",
+      "description": "Anwesenheits- und Nacht-Automatik ein- oder ausschalten.",
+      "fields": {
+        "entity_id": {
+          "name": "Alarmanlage",
+          "description": "Leer = alle Safe-Home-Instanzen"
+        },
+        "enabled": {
+          "name": "Anwesenheits-Automatik",
+          "description": "Ein oder aus"
+        },
+        "night": {
+          "name": "Nacht-Automatik",
+          "description": "Optional"
+        }
+      }
+    },
+    "skip_exit_delay": {
+      "name": "Sofort scharf (Ausgangsverzögerung überspringen)",
+      "description": "Überspringt die laufende Ausgangsverzögerung und schaltet sofort scharf.",
+      "fields": {
+        "entity_id": {
+          "name": "Alarmanlage",
+          "description": "Leer = alle Safe-Home-Instanzen"
+        }
+      }
+    }
+  }
+}
