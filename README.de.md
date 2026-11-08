@@ -8,7 +8,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/HACS-Custom-0b2463?style=for-the-badge" alt="HACS">
   <img src="https://img.shields.io/badge/Home%20Assistant-2024.12%2B-0b2463?style=for-the-badge" alt="HA">
-  <img src="https://img.shields.io/badge/Version-1.1.0-e8213b?style=for-the-badge" alt="Version">
+  <img src="https://img.shields.io/badge/Version-1.20.0-e8213b?style=for-the-badge" alt="Version">
 </p>
 
 <p align="center"><a href="README.md">English</a> · <b>Deutsch</b></p>
@@ -44,7 +44,7 @@
 - Sirenen / akustische Signalgeber einschalten (`siren`, `switch`, `input_boolean`, `script`) – **fein einstellbar**: nur in bestimmten Modi, nur in einem Zeitfenster und für jeden Sensor einzeln (siehe [Akustischer Alarm](#akustischer-alarm))
 - Alarmbeleuchtung rot einschalten (wird beim Unscharfschalten wieder ausgeschaltet)
 - Push-Benachrichtigung an die Companion App – auf Wunsch als **kritische Benachrichtigung** (umgeht Lautlos/Fokus), mit **Kamera-Schnappschuss** und Tasten **„Sirene stumm“** und optional **„Entschärfen“** (mit Geräte-Entsperrung)
-- **Sprachausgabe** über Lautsprecher (TTS) – Warnung während der Eingangsverzögerung und Alarmansage
+- **Sprachansagen** über Lautsprecher (TTS), abschaltbar – passend zur Art des Melders, z. B. *„Achtung, möglicher Einbruch! Geöffnetes Fenster erkannt: Küche.“* (siehe [Art der Sensoren & Ansagen](#art-der-sensoren--ansagen))
 - **WhatsApp über TextMeBot** – direkt in der Integration, mit dem ausgelösten Melder, **Eskalation** an weitere Empfänger, wenn der Alarm nicht ausgeschaltet wird, und Entwarnung
 - Persistente Benachrichtigung in Home Assistant
 - Ereignis `safe_home_triggered` für eigene Automationen
@@ -87,14 +87,15 @@ Nach der Installation erscheint **Safe Home** in der Seitenleiste (nur für Admi
 | Bereich | Inhalt |
 |---|---|
 | **Übersicht** | Kennzahlen (überwachte/offene Sensoren, Personen zuhause, letzter Alarm), Empfehlungen zu Lücken in der Konfiguration und die Steuerung der Alarmanlage |
-| **Bereiche & Sensoren** | Hauptbereich und bis zu 3 **Teilbereiche** (Name, Verzögerungen, Kernzeiten, Anwesenheit). Alle Sensoren in einer Tabelle mit Live-Zustand und Raum. Pro Sensor den **Bereich** wählen und per Schalter festlegen: *Unterwegs*, *Nacht*, *Eingangsverzögerung*. Suche, Sensor hinzufügen und **Vorschläge** (alle Tür-, Fenster- und Bewegungssensoren auf einen Klick) |
-| **Zeiten** | Grafischer Ablauf (Ausgangsverzögerung → scharf → Eingangsverzögerung → Alarm), der sich beim Eintippen sofort anpasst |
-| **Alarm-Aktionen** | Sirenen, Alarmlicht, Benachrichtigungen, Kameras, Sprachausgabe – mit **Test-Tasten** für Benachrichtigung, Sirene (3 s), Alarmlicht (5 s) und Ansage |
-| **Automatik** | Home-Zone-Personen mit aktuellem Status, Auto-Scharf/-Unscharf, Nachtmodus-Zeitplan |
-| **Haushalt** | Wassersensoren & Co.: Zustand je Sensor wählen, Live-Status, Vorschläge, Entwarnung |
-| **Sicherheit** | Name der Instanz, PIN-Code |
+| **Bereiche & Sensoren** | **Bereiche** (Name der Alarmanlage, bis zu 3 **Teilbereiche**), **Überwachte Sensoren** (Art, Bereich, *Unterwegs*/*Nacht*/*Verzögert* je Sensor, Vorschläge), **Verzögerungen** (Ausgangs-/Eingangsverzögerung mit Live-Ablauf), **Überwachung** (offene/nicht erreichbare Sensoren, Batterien) |
+| **Alarm-Aktionen** | **Sirene & Licht** (Sirenen, Alarmlicht, Sirenen-Regeln, Sirene je Sensor, Alarm- und Sirenendauer), **Benachrichtigungen** (Smartphones, kritisch, Entschärfen-Taste, Kamerabild), **Sprachansagen**, **WhatsApp**, **Testen** inkl. [echtem Alarm von einem Sensor](#alarm-von-einem-sensor-auslösen) |
+| **Automatik** | **Anwesenheit**, **Wochenplan**, **Nachtmodus** und eine Zusammenfassung, wie Safe Home selbstständig handelt |
+| **Haushalt** | Haushalt überwachen, **Melden per** Push / WhatsApp / Ansage / Entwarnung, Sensoren mit Meldezustand |
+| **Sicherheit** | **PIN-Eingabe** (PIN zum Scharf- und Stummschalten, Meldung bei falschem PIN, Sperre) und **PINs verwalten** – persönliche PINs für jeden Home-Assistant-Benutzer und Gast-PINs mit Zeitraum (siehe [PINs](#pins)) |
 | **Protokoll** | Die letzten 30 Ereignisse, filterbar nach Alarmen, Schaltungen und Warnungen |
 | **Info** | **Android-Widget-Generator**, Status der Dashboard-Ressource, Version, Links, Dankeschön |
+
+Die Abschnitte in den Reitern sind **zugeklappt** und öffnen sich per Tipp auf die Überschrift – besonders übersichtlich auf dem Smartphone. Unter *Info → Darstellung* lässt sich *Einstellungen standardmäßig ausklappen* anhaken (gilt je Browser/Gerät).
 
 Änderungen werden erst mit **Speichern** übernommen (die Leiste unten erscheint automatisch). Vor dem Speichern prüft Safe Home alle Angaben und markiert Fehler. Bei mehreren Instanzen wählst du oben rechts die gewünschte aus.
 
@@ -124,12 +125,29 @@ Der Einrichtungsassistent führt durch fünf Schritte. Alles kann später auf de
 | **Dauer des akustischen Alarms** | So lange ertönen Sirenen und Signalgeber. Danach bleibt der Alarm **still** bestehen – Benachrichtigungen, WhatsApp und Alarmlicht laufen weiter. `0` = während der gesamten Alarmdauer. |
 
 Beispiel: Alarmdauer 10 Min., Sirene 3 Min. → 3 Minuten Sirene, 7 Minuten stiller Alarm, danach wieder scharf. Beide Werte werden auf der Safe-Home-Seite als Stunden/Minuten/Sekunden eingestellt, die Ablaufgrafik zeigt beide Phasen. Manuelles Stummschalten beendet nur die Sirene – die Alarmdauer läuft weiter. Bestehende Installationen übernehmen die bisherige Alarmdauer auch als Sirenendauer.
-4. **Aktionen** – Sirenen, Alarmlicht, Benachrichtigungsdienste (z. B. `mobile_app_mein_handy`), Kameras, Sprachausgabe.
+4. **Aktionen** – Sirenen, Alarmlicht, Smartphones mit Companion App (z. B. `mobile_app_mein_handy`), Kameras, Sprachausgabe.
 5. **Automatik** – Personen für die Home-Zone, Auto-Scharf/-Unscharf, Nachtmodus-Zeitplan.
 
 **Empfehlung:** Haustür in *Eingangsverzögerung*, Bewegungsmelder **nicht** – so kannst du beim Heimkommen entschärfen, Einbrecher über Fenster lösen sofort aus.
 
 ---
+
+## Wochenplan
+
+Unter **Automatik → Wochenplan** zeichnest du einen Wochenkalender (Montag–Sonntag): Balken für **Unterwegs** (orange) oder **Nacht** (lila) per Ziehen eintragen; außerhalb der Balken ist die Anlage **unscharf**. An den Rändern ziehen ändert die Zeit, den Balken ziehen verschiebt ihn, mit *Unscharf* radierst du Zeiten weg. Raster: 15 Minuten. *Montag auf Di–Fr kopieren* und *Alles leeren* helfen beim Einrichten.
+
+- Der Wochenplan ist **nur aktiv, wenn „Anwesenheit“ in der Automatik ausgeschaltet ist** – sonst ist der Bereich ausgegraut und zeigt einen Hinweis.
+- Zum Beginn eines Balkens schaltet Safe Home scharf (mit der normalen Ausgangsverzögerung), zum Ende unscharf – aber nur, wenn der Wochenplan scharf geschaltet hat. Von Hand gewählte Modi und laufende Alarme bleiben unangetastet.
+- Balken, die über Mitternacht aneinanderstoßen (z. B. Di 22–24 Uhr und Mi 0–6 Uhr), gelten als ein Zeitraum.
+- Solange der Wochenplan aktiv ist, ist der **Nachtmodus-Zeitplan pausiert** (unter *Automatik* ausgegraut, der Schalter in der Karte zeigt *Pausiert (Wochenplan)*) – so überschneiden sich beide nie.
+
+## Batterie-Überwachung
+
+Safe Home prüft die Batterien aller überwachten Sensoren – Hauptbereich und Teilbereiche. Gefunden wird die Batterie-Entität desselben Geräts (`sensor` mit Geräteklasse *Batterie* in %, oder ein binärer Sensor *Batterie schwach*) oder das Attribut `battery_level` des Sensors selbst.
+
+- Unter der Schwelle (Standard **20 %**, einstellbar 5–90 %) erscheint der Sensor als gelber Chip im Sensorbereich der Karten und unter *Bereiche & Sensoren → Batterien*, das Protokoll erhält einen Eintrag und – wenn aktiviert – kommt eine Push-Nachricht.
+- Jede Batterie wird **nur einmal** gemeldet (auch über Neustarts hinweg), bis sie gewechselt wurde; als gewechselt gilt sie 5 % über der Schwelle.
+- Alles ist abschaltbar: *Batterien der Sensoren überwachen* und *Push-Benachrichtigung bei schwacher Batterie*.
 
 ## Tag- und Nacht-Automatik
 
@@ -145,12 +163,50 @@ Safe Home entscheidet anhand von **Uhrzeit** und **Standort der Personen** selbs
 | **Nachtende**, jemand zuhause | Unscharf („Guten Morgen“). |
 | **Nachtende**, niemand mehr da | Nicht unscharf, sondern **Unterwegs** – das leere Haus bleibt geschützt. |
 
-- Alle Schritte, die auf Personen reagieren, gelten nur bei **eingeschalteter Home-Zone-Automatik** (Schalter „Home-Zone“). Ohne sie schaltet Safe Home nur nach Zeitplan und schaltet ein leeres Haus morgens nie unscharf.
+- Alle Schritte, die auf Personen reagieren, gelten nur bei **eingeschalteter Home-Zone-Automatik** (Schalter „Anwesenheit“). Ohne sie schaltet Safe Home nur nach Zeitplan und schaltet ein leeres Haus morgens nie unscharf.
 - **Von Hand gewähltes Unterwegs** wird von der Automatik nie überschrieben.
-- **Ein Schalter je Automatik:** Home-Zone-Automatik und Nachtmodus werden ausschließlich über ihren Schalter ein- und ausgeschaltet – „Home-Zone“ und „Nachtzeit“ auf den Karten bzw. oben im Reiter Automatik (derselbe Schalter, wirkt sofort, ohne Speichern). Im Reiter stehen sonst nur die Details: Personen, Wartezeiten, Uhrzeiten und was die Home-Zone-Automatik tut (beim Verlassen scharf / beim Heimkommen unscharf).
+- **Ein Schalter je Automatik:** Home-Zone-Automatik und Nachtmodus werden ausschließlich über ihren Schalter ein- und ausgeschaltet – „Anwesenheit“ und „Nachtzeit“ auf den Karten bzw. oben im Reiter Automatik (derselbe Schalter, wirkt sofort, ohne Speichern). Im Reiter stehen sonst nur die Details: Personen, Wartezeiten, Uhrzeiten und was die Home-Zone-Automatik tut (beim Verlassen scharf / beim Heimkommen unscharf).
 - Neue Einstellung: **Nach Heimkehr in der Nacht wieder Nachtmodus nach … Minuten** (0 = bleibt unscharf).
 
 ---
+
+## Alarm von einem Sensor auslösen
+
+Damit du sicher sein kannst, dass im Ernstfall alles funktioniert, lässt sich unter *Alarm-Aktionen → Testen* ein Alarm **ausgehend von einem angelegten Sensor** auslösen – so, als hätte er gemeldet:
+
+1. **Alarmanlage** (Hauptbereich und Teilbereiche) oder **Haushalt** wählen.
+2. Sensor auswählen und **Alarm auslösen** drücken – mit einem zweiten Klick bestätigen.
+3. Sirenen, Alarmlicht, Ansage, Push (mit Kamerabild) und WhatsApp laufen **genau wie bei einem echten Alarm** – mit dem echten Wortlaut des Sensors, z. B. *„Fenster geöffnet: Küche“*. Das Wort „Test“ taucht nirgends auf.
+4. **Rückstellung** beendet alles und stellt den Zustand davor wieder her (z. B. unscharf oder scharf *Nacht*). WhatsApp-Empfänger erhalten die übliche Entwarnung.
+
+Entschärfen über eine Karte beendet den Alarm ebenfalls. Ist die Alarmdauer abgelaufen, stellt Safe Home automatisch zurück, statt wieder scharf zu schalten. Sag vorher Mitbewohnern und WhatsApp-Empfängern Bescheid.
+
+## Art der Sensoren & Ansagen
+
+Für jeden Sensor wählst du im Reiter *Bereiche & Sensoren* (bei binären Sensoren auch unter *Haushalt*) die **Art**: **Türkontakt, Fensterkontakt, Bewegungsmelder, Präsenzmelder, Wassersensor oder Kamera**. Safe Home schlägt die Art anhand der Geräteklasse vor – ein Kontakt, der sich nur als *Öffnung* meldet, lässt sich so z. B. als *Fensterkontakt* einstellen.
+
+Die Art bestimmt die Texte aller Meldungen:
+
+| Art | Push / WhatsApp / Protokoll | Ansage |
+|---|---|---|
+| Türkontakt | Tür geöffnet: Haustür | Achtung, möglicher Einbruch! Geöffnete Tür erkannt: Haustür. |
+| Fensterkontakt | Fenster geöffnet: Küche | Achtung, möglicher Einbruch! Geöffnetes Fenster erkannt: Küche. |
+| Bewegungsmelder | Bewegung erkannt: Flur | Achtung, möglicher Einbruch! Bewegung erkannt: Flur. |
+| Präsenzmelder | Anwesenheit erkannt: Wohnzimmer | Achtung, möglicher Einbruch! Person erkannt: Wohnzimmer. |
+| Kamera | Kamera hat Bewegung erkannt: Einfahrt | Achtung, möglicher Einbruch! Bewegung auf der Kamera erkannt: Einfahrt. |
+| Wassersensor | Wasser erkannt: Keller | Achtung, Wasseralarm! Wasser erkannt: Keller. |
+
+Jede Alarm-Ansage endet mit *„Die Bewohner werden benachrichtigt.“* Bei Teilbereichen heißt es *„…möglicher Einbruch im Bereich Garage!“*.
+
+**Sprachansagen** (*Alarm-Aktionen → Sprachansagen*) schaltest du mit einer eigenen Checkbox ein und aus. Ist sie an, wählst du Sprachausgabe-Dienst und Lautsprecher und zusätzlich:
+- **Ansage während der Eingangsverzögerung** – *„Bitte Alarmanlage innerhalb von 30 Sekunden ausschalten.“* Sie läuft **in Schleife** mit der Restzeit (*„… noch 20 Sekunden.“*), bis du entschärfst oder der Alarm beginnt – standardmäßig alle 10 s, einstellbar unter *Hinweis wiederholen alle … Sekunden* (0 = nur einmal).
+
+**Eingangsverzögerung kurz erklärt:** Nur Melder mit *Verzögert* (z. B. Haustür) starten den Countdown. Schließen der Tür beendet ihn **nicht** – nur Entschärfen. Meldet während des Countdowns ein Melder **ohne** Verzögerung (z. B. Bewegung im Wohnzimmer), beginnt der Alarm **sofort**.
+- **Ansage auch bei Haushalts-Alarm** – z. B. *„Achtung, Wasseralarm! Wasser erkannt: Waschmaschine. Bitte sofort prüfen.“*
+
+**Alexa-Geräte (Alexa Media Player):** Echo-Geräte sind von den Lautsprechern getrennt. Erst mit der Checkbox *Alexa-Geräte verwenden* (standardmäßig aus) lassen sie sich auswählen – sie sprechen dann mit der **normalen Alexa-Stimme** über `notify.alexa_media` (`type: tts`), ganz ohne Sprachausgabe-Dienst. Lautsprecher und Alexa-Geräte lassen sich kombinieren. Wird ein Echo versehentlich unter *Lautsprecher* gewählt, zeigt Safe Home einen Hinweis – es spricht trotzdem mit der Alexa-Stimme. Voraussetzung ist die Integration [Alexa Media Player](https://github.com/alandtse/alexa_media_player).
+
+Eine Vorschau zeigt, wie die Ansagen mit deinen Sensornamen klingen. Standardmäßig wird auch bei einem **stillen Alarm** angesagt (Sirene aus, z. B. außerhalb des Sirenen-Zeitfensters) – mit *Ansage auch bei stillem Alarm* lässt sich ein stiller Alarm ganz still halten. Fällt eine Ansage aus oder meldet Alexa einen Fehler, steht der Grund im Protokoll. Bestehende Installationen mit Sprachausgabe-Dienst und Lautsprechern behalten ihre Ansagen eingeschaltet.
 
 ## Teilbereiche
 
@@ -160,6 +216,7 @@ Neben dem **Hauptbereich** – der Alarmanlage mit Zuhause, Unterwegs und Nacht 
 |---|---|
 | **Name** | Wird in den Karten angezeigt und bei jedem Alarm genannt (Push, WhatsApp, Ansage, Protokoll) |
 | **Sensoren** | In der Sensortabelle pro Sensor den **Bereich** wählen. Jeder Sensor gehört genau einem Bereich. Sensoren eines Teilbereichs haben keine Modi – sie sind überwacht, sobald der Teilbereich scharf ist |
+| **Sirene** | *Wie Hauptbereich* (die Sirenen unter *Alarm-Aktionen*), *Eigene Sirenen* (z. B. nur die Außensirene an der Garage) oder *Keine Sirene* (stiller Alarm – Benachrichtigungen, Licht und Ansage laufen trotzdem) |
 | **Ausgangs-/Eingangsverzögerung** | Eigene Verzögerungen je Teilbereich; *Eingangsverzögerung* je Sensor |
 | **Kernzeiten** | Zur Startzeit an den gewählten Wochentagen scharf, zur Endzeit unscharf (z. B. 18:30–06:00, Mo–Fr) |
 | **Eigene Anwesenheit** | Scharf, wenn alle gewählten Personen weg sind – unscharf, sobald eine zurückkommt. Unabhängig vom Hauptbereich |
@@ -197,7 +254,7 @@ Auf der **Safe-Home-Seite → Alarm-Aktionen → Akustischer Alarm** legst du fe
 | **Nur in einem Zeitfenster** | Von–bis, auch über Mitternacht (z. B. 22:00–06:00). Standard: rund um die Uhr. |
 | **Sirene je Sensor** | Liste aller überwachten Sensoren mit Schalter *Sirene / Still* sowie *Alle an* / *Alle still*. Neue Sensoren lösen die Sirene automatisch aus. |
 
-Greift eine Regel, gibt es einen **stillen Alarm**: Der Alarm wird ausgelöst, Benachrichtigungen, WhatsApp und Alarmlicht laufen wie gewohnt – nur Sirene und Alarm-Ansage bleiben aus. Das Protokoll nennt den Grund (z. B. „Stiller Alarm – Sirene bleibt aus: Bewegung Flur löst keinen akustischen Alarm aus“), die Karten zeigen „Stiller Alarm“.
+Greift eine Regel, gibt es einen **stillen Alarm**: Der Alarm wird ausgelöst, Benachrichtigungen, WhatsApp und Alarmlicht laufen wie gewohnt – nur die Sirene bleibt aus. Die Ansage kommt trotzdem, außer *Ansage auch bei stillem Alarm* ist ausgeschaltet. Das Protokoll nennt den Grund (z. B. „Stiller Alarm – Sirene bleibt aus: Bewegung Flur löst keinen akustischen Alarm aus“), die Karten zeigen „Stiller Alarm“.
 
 - Löst während eines stillen Alarms ein **weiterer Sensor** aus, der die Sirene auslösen darf, startet sie nachträglich – außer die Sirene wurde von Hand stummgeschaltet.
 - **Panikalarm** und **manuelles Auslösen** ertönen immer – das sind bewusste Notrufe.
@@ -218,9 +275,11 @@ siren_excluded_sensors: [binary_sensor.bewegung_flur]
 
 Safe Home schickt Alarme direkt per WhatsApp – ohne Automation und ohne `rest_command`. Einstellen auf der **Safe-Home-Seite → Alarm-Aktionen → WhatsApp über TextMeBot**.
 
+> **Wichtig:** [TextMeBot](https://textmebot.com) ist ein **kostenpflichtiges Angebot eines Drittanbieters** (nicht von Safe Home, Home Assistant oder WhatsApp) – für den Versand ist in der Regel ein bezahltes Abo nötig; Preise und Bedingungen stehen auf der Website von TextMeBot. Es gibt keine Zustellgarantie, nutze WhatsApp deshalb nur zusätzlich zu Push und Sirene. Telefonnummern und Nachrichtentexte werden an TextMeBot übermittelt. Die Einstellungsseite zeigt diese Hinweise im ausklappbaren Feld *Wichtige Hinweise zu WhatsApp-Benachrichtigungen*.
+
 | Einstellung | Bedeutung |
 |---|---|
-| **Empfänger** | Name, WhatsApp-Nummer (international, z. B. `+491701234567`, oder eine Gruppen-ID) und der **TextMeBot-API-Key**. Bis zu 10 Empfänger. |
+| **Empfänger** | Name, WhatsApp-Nummer (international, z. B. `+491701234567`, oder eine Gruppen-ID) und der **TextMeBot-API-Key**. Bis zu 10 Empfänger. Jeder hat ein Häkchen **Aktiv** – so kannst du z. B. zeitweise nur eine Person benachrichtigen. |
 | **Senden: sofort / nach X Min.** | *Sofort* = bei Alarmbeginn. Mit Wartezeit = **Eskalation**: nur wenn der Alarm bis dahin nicht ausgeschaltet wurde. Die Nachricht beginnt dann mit „⏰ Erinnerung: Der Alarm ist seit X Minuten nicht zurückgestellt.“ |
 | **Nachricht bei Alarm** | Leer = Standardtext. Platzhalter: `{sensor}` ausgelöste Melder, `{date}`, `{time}`, `{mode}`, `{name}` |
 | **Entwarnung** | Wer eine Alarm-Nachricht bekommen hat, erhält beim Ausschalten „✅ Entwarnung …“. |
@@ -278,6 +337,34 @@ type: custom:safe-home-tablet-card
 entity: alarm_control_panel.safe_home
 ```
 Tipp: In einer Ansicht vom Typ **Panel** oder **Abschnitte** mit voller Breite nutzt die Karte den Platz am besten.
+
+### Quadrat – 1:1 für kleine Bedien-Displays
+
+`custom:safe-home-square-card` (*Safe Home – Quadrat*) ist eine quadratische Karte für kleine Wand-Displays: Status mit Countdown, die drei Modi **Zuhause / Unterwegs / Nacht** mit PIN-Ziffernfeld und eine große **runde Panik-Taste** (SOS – 2 s halten, ein Ring füllt sich dabei). Sonst nichts. Alle Größen passen sich der Karte an.
+
+In der Mitte lassen sich bis zu drei Elemente zeigen, jedes optional: der **aktuelle Status** (großes Modus-Symbol), die **Personen** (Avatare, farbig wenn zuhause) und die **Panik-Taste**. Sie stehen entweder **nebeneinander auf einer Ansicht** oder als **Seiten zum Wischen nach links/rechts** (mit Punkten zum Antippen).
+
+```yaml
+type: custom:safe-home-square-card
+entity: alarm_control_panel.safe_home
+show_panic: true        # runde SOS-Taste
+square_status: false    # aktueller Modus, groß
+square_persons: false   # Personen zuhause / unterwegs
+square_view: all        # all = eine Ansicht, swipe = wischen links/rechts
+```
+
+### Badge – klein und transparent
+
+`custom:safe-home-badge-card` (in der Kartenauswahl als **Safe Home – Badge**) zeigt das weiße Safe-Home-Logo und den aktuellen Status in seiner Farbe – mit **transparentem Hintergrund**, passt also auf jedes Dashboard. Optional erscheinen die Teilbereiche als kleine farbige Punkte (auf Wunsch mit Namen). Ein Tipp öffnet die Details der Alarmanlage. Dasselbe Element lässt sich auch als echtes Home-Assistant-**Badge** oben im Dashboard einfügen: `type: custom:safe-home-badge`.
+
+```yaml
+type: custom:safe-home-badge-card
+entity: alarm_control_panel.safe_home
+show_zones: true      # Teilbereiche als Punkte
+zone_names: false     # Namen neben den Punkten
+show_name: false      # Name der Alarmanlage unter dem Status
+red_logo: false       # rotes statt weißes Logo (für helle Hintergründe)
+```
 
 ### Custom – Vollbild für Smartphone & Tablet
 Die umfangreichste Karte: alles aus dem Standard-Layout plus zusätzliche Module. Jedes Modul lässt sich im Bearbeitungsmenü ein- und ausschalten und hat einen eigenen aufklappbaren Bereich.
@@ -351,6 +438,7 @@ cover_entities:
   - cover.schlafzimmer
 covers_group_by_area: true
 show_cover_all: true
+covers_design: animated     # classic (Balken) | animated (Rollo zeigt 0–100 %)
 show_lights: true
 light_entities:
   - light.wohnzimmer
@@ -382,6 +470,8 @@ layout_order:           # wird per Drag & Drop automatisch gesetzt
   c: [covers, lights, scenes, sensors, events, custom2, custom4]
 ```
 
+**Darstellung der Rollos:** Im Karteneditor (*Rollos*) wählst du zwischen **Klassisch (Balken)** und **Animiertes Rollo** – ein kleines Fenster, dessen Rollo die genaue Position von 0 bis 100 % zeigt und sich beim Fahren bewegt. Die Karte wird dadurch nicht größer.
+
 ### Eigene Hintergrundfarbe (alle Varianten)
 Im Karten-Editor unter **Hintergrundfarbe** stellst du mit drei Reglern (**Rot, Grün, Blau**) die Grundfarbe der Karte ein – mit Live-Vorschau. Flächen, Linien, Schrift und Akzentfarbe werden automatisch passend abgeleitet. Sehr helle Farben werden für lesbare Schrift abgedunkelt; *Standard-Dunkelblau* setzt zurück. Die Farbeffekte der Schaltungen (Grün, Blau, Lila, Gelb, Rot) bleiben erhalten; Rottöne werden als Akzentfarbe nicht verwendet (stattdessen Bernstein), damit nichts mit einem Alarm verwechselt wird.
 
@@ -399,12 +489,49 @@ show_sensors: true      # offene / überbrückte Sensoren
 show_events: true       # Protokoll
 events_count: 5         # Tablet: Standard 8
 show_panic: true        # Panik-Taste (2 s halten)
-zones_display: inline   # Tablet & Custom: Teilbereiche als Liste (inline) oder Punkte (dots)
+zones_display: inline   # Tablet & Custom: Teilbereiche als Liste (inline), Punkte (dots) oder ausgeblendet (hidden – nur das Alarm-Banner bleibt)
 ```
 
 Ist ein PIN gesetzt, öffnet sich ein Ziffernblock. Farben lassen sich über CSS-Variablen anpassen, z. B. `--sh-bg1`, `--sh-bg2`, `--sh-accent` (etwa mit card-mod).
 
 ---
+
+## Home-Assistant-Design (Beta)
+
+Unter **Info → Darstellung** schaltest du mit **Home-Assistant-Design verwenden** <sup>(Beta)</sup> zwischen dem eigenen Safe-Home-Look und dem Design deines Home Assistant um. Die Option gilt nach dem Speichern für die Safe-Home-Seite **und alle Safe-Home-Karten**, auf allen Geräten.
+
+- Farben, Hintergründe, Karten-Rahmen und Schrift kommen dann aus deinem aktiven HA-Design (hell oder dunkel). Das hilft bei Darstellungsproblemen, z. B. mit eigenen Themes oder älteren Browsern.
+- Die Zustandsfarben (Grün = Zuhause, Bernstein = Unterwegs, Lila = Nacht, Rot = Alarm) bleiben, damit der Zustand auf einen Blick erkennbar ist.
+- Auf hellem Hintergrund wird automatisch das rote Logo verwendet; auch das Badge wechselt im hellen Design auf das rote Logo.
+- Die eigene Hintergrundfarbe aus dem Karten-Editor wird in diesem Modus ignoriert.
+
+### Design „Safe Home“ für ganz Home Assistant
+Safe Home bringt zusätzlich ein eigenes Home-Assistant-Design mit, angelehnt an die Farben der Anwendung (Dunkelblau, Blau-Akzent, Zustandsfarben). Es wird beim Start automatisch zu den Designs hinzugefügt – keine YAML-Datei nötig.
+
+1. Unten links auf deinen **Benutzernamen** (Profil) tippen.
+2. Unter **Design** → **Safe Home** wählen.
+3. Bei **Modus** *Automatisch*, *Hell* oder *Dunkel* wählen – das Design hat einen hellen und einen dunklen Modus.
+
+Auch nach *Entwicklerwerkzeuge → YAML → Designs neu laden* bleibt das Design verfügbar. Es lässt sich ebenso als Design einzelner Dashboards auswählen.
+
+## PINs
+
+Unter **Sicherheit → PINs verwalten** bekommt jeder Home-Assistant-Benutzer einen **eigenen PIN**, außerdem lassen sich **Gast-PINs** anlegen – z. B. für Handwerker, Babysitter oder Feriengäste:
+
+| | |
+|---|---|
+| **Benutzer-PINs** | Ein PIN je Home-Assistant-Benutzer. 🎲 erzeugt einen zufälligen 6-stelligen PIN, 👁 zeigt ihn an. |
+| **Gast-PINs** | Name, PIN, **Gültig ab** und **Gültig bis** (Datum und Uhrzeit, beides optional) – so lassen sich Zugänge planen. Per Häkchen deaktivierbar. Der Status zeigt *Aktiv*, *Geplant*, *Abgelaufen*, *Deaktiviert* oder *Unbegrenzt*. |
+
+- Persönliche und Gast-PINs **ersetzen den bisherigen allgemeinen PIN**. Beim Update erscheint ein vorhandener allgemeiner PIN als Eintrag *Bisheriger PIN*, damit niemand ausgesperrt wird.
+- Jeder gültige PIN bedient die Alarmanlage (Hauptbereich und Teilbereiche). Protokoll und Benachrichtigungen nennen, wessen PIN verwendet wurde, z. B. *„Zuhause – unscharf (Manuell (Oma))“*.
+- Ein geplanter oder abgelaufener Gast-PIN wird abgelehnt; das Protokoll nennt den Grund (z. B. *„PIN von Handwerker gilt erst ab 10.01.2030 08:00“*).
+- PINs müssen mindestens 4 Zeichen lang und eindeutig sein.
+- **PIN-Funktion an/aus:** ein Hauptschalter unter *Sicherheit → PIN-Eingabe*. Aus = die Alarmanlage lässt sich überall ohne PIN bedienen.
+- **Je Bereich:** Unter *PIN verlangen für* hakst du Hauptbereich und jeden Teilbereich einzeln an. Ein Bereich ohne Haken – oder ohne zugeordneten PIN – ist ohne PIN bedienbar.
+- **Je PIN:** Unter *Darf schalten* wählst du, für welche Bereiche ein Benutzer- oder Gast-PIN gilt (z. B. der Handwerker nur *Garage*). Ein PIN für einen anderen Bereich wird abgewiesen; das Protokoll nennt den Grund.
+- **Sirene stumm schalten braucht ebenfalls den PIN** (Option *PIN auch zum Stummschalten der Sirene verlangen*, standardmäßig an) – so kann ein Einbrecher am Wand-Tablet sie nicht abschalten. Automationen und Skripte, die `safe_home.silence` aufrufen, brauchen keinen PIN.
+- **Sperre nach falschen PINs:** Nach 5 falschen Eingaben in Folge (einstellbar, 0 = nie) ist die PIN-Eingabe 5 Minuten gesperrt (einstellbar) – auch der richtige PIN wird dann abgewiesen. Du bekommst sofort eine kritische Push-Nachricht *„Mehrere falsche PINs“*, das Ziffernfeld zeigt die Restdauer. Die Sperre übersteht einen Neustart.
 
 ## Fehlerbehebung
 
@@ -446,7 +573,7 @@ lovelace:
 |---|---|
 | `alarm_control_panel.alarm_disarm / alarm_arm_away / alarm_arm_night` | Standard-Dienste von Home Assistant |
 | `safe_home.panic` | Sofortalarm |
-| `safe_home.silence` | Sirenen aus, Alarm bleibt bestehen |
+| `safe_home.silence` | Sirenen aus, Alarm bleibt bestehen (optional `code` – nötig bei Bedienung über das Dashboard) |
 | `safe_home.skip_exit_delay` | Laufende Ausgangsverzögerung überspringen – sofort scharf (auch für Teilbereiche) |
 | `safe_home.set_auto_mode` | Automatiken schalten (`enabled`, optional `night`) |
 

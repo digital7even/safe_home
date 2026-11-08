@@ -45,6 +45,8 @@ ZONE_DEFAULTS: dict[str, Any] = {
     "days": [0, 1, 2, 3, 4, 5, 6],  # 0 = Montag
     "presence_enabled": False,
     "persons": [],
+    "siren_mode": "shared",  # shared = Sirenen des Hauptbereichs, own = eigene Auswahl, off = keine Sirene
+    "sirens": [],
 }
 
 
@@ -277,6 +279,9 @@ class SafeHomeZone:
         self._cancel_alarm_timers()
         if self.state != S.TRIGGERED:
             return
+        if self.ctrl.drill and self.ctrl.drill.get("zone") == self.id:
+            self.hass.async_create_task(self.ctrl.async_drill_reset())
+            return
         self.hass.async_create_task(self.ctrl._async_sirens(False, self.id))  # noqa: SLF001
         if self.ctrl.opt("rearm_after_trigger"):
             self.bypassed |= set(self.open_sensors())
@@ -349,11 +354,17 @@ class SafeHomeZone:
                 self.trigger_sensors = [*self.trigger_sensors, entity_id]
             self._update()
             return
+        if self.state == S.PENDING and entity_id not in self.delayed:
+            # Melder ohne Verzögerung während der Eingangsverzögerung -> sofort Alarm
+            self._log("info", self.t("{name} während der Eingangsverzögerung – sofortiger Alarm", name=self.ctrl.friendly(entity_id)))
+            self.trigger_sensors = [entity_id, *(e for e in self.trigger_sensors if e != entity_id)]
+            self.hass.async_create_task(self.async_trigger(self.ctrl.sensor_cause(entity_id)))
+            return
         if self.state != S.ARMED_AWAY:
             return
         name = self.ctrl.friendly(entity_id)
         self.trigger_sensors = [entity_id]
-        cause = self.t("{name} ausgelöst", name=name)
+        cause = self.ctrl.sensor_cause(entity_id)
         entry = int(self.cfg["entry_delay"] or 0)
         if entity_id in self.delayed and entry > 0:
             self.state = S.PENDING
@@ -361,6 +372,14 @@ class SafeHomeZone:
             self._start_delay(entry, self._entry_elapsed)
             self._log("pending", self.t("Eingangsverzögerung {delay} s: {name}", delay=entry, name=name))
             self._update()
+            self.ctrl.start_entry_announcements(
+                f"zone_{self.id}",
+                lambda: self.state == S.PENDING,
+                lambda: self.delay_until,
+                lambda n, first: self.t("{zone}: Bitte innerhalb von {delay} Sekunden ausschalten.", zone=self.name, delay=n)
+                if first
+                else self.t("{zone}: Bitte ausschalten – noch {n} Sekunden.", zone=self.name, n=n),
+            )
             return
         self.hass.async_create_task(self.async_trigger(cause))
 

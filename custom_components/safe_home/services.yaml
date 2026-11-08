@@ -15,6 +15,10 @@ silence:
           integration: safe_home
           domain: alarm_control_panel
           multiple: true
+    code:
+      selector:
+        text:
+          type: password
 
 skip_exit_delay:
   fields:

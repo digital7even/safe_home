@@ -208,6 +208,9 @@
     },
     "arm_blocked": {
       "message": "Scharfschalten nicht möglich – Sensoren offen oder Alarm aktiv. Details im Protokoll."
+    },
+    "code_locked": {
+      "message": "Zu viele falsche PINs – die PIN-Eingabe ist noch {minutes} Min. gesperrt."
     }
   },
   "services": {
@@ -228,6 +231,10 @@
         "entity_id": {
           "name": "Alarmanlage",
           "description": "Leer = alle Safe-Home-Instanzen"
+        },
+        "code": {
+          "name": "PIN",
+          "description": "Erforderlich bei Bedienung über das Dashboard, wenn ein PIN gesetzt ist"
         }
       }
     },

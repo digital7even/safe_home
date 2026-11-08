@@ -208,6 +208,9 @@
     },
     "arm_blocked": {
       "message": "Arming not possible – sensors open or alarm active."
+    },
+    "code_locked": {
+      "message": "Too many wrong PINs – PIN entry is locked for {minutes} more minute(s)."
     }
   },
   "services": {
@@ -228,6 +231,10 @@
         "entity_id": {
           "name": "Alarm panel",
           "description": "Empty = all"
+        },
+        "code": {
+          "name": "PIN",
+          "description": "Required when operated from the dashboard and a PIN is set"
         }
       }
     },

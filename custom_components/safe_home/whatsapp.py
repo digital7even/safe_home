@@ -68,8 +68,8 @@ def valid_recipient_id(value: str) -> bool:
 def parse_recipients(raw: Any) -> list[Recipient]:
     out: list[Recipient] = []
     for item in raw or []:
-        if not isinstance(item, dict):
-            continue
+        if not isinstance(item, dict) or item.get("enabled", True) is False:
+            continue  # per Häkchen deaktiviert
         phone = normalize_phone(item.get("phone", ""))
         apikey = str(item.get("apikey", "") or "").strip()
         if not phone or not apikey:

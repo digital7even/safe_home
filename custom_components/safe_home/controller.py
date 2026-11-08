@@ -38,6 +38,7 @@ from . import whatsapp as wa
 from .zone import SafeHomeZone
 from .i18n import date_format, is_german, tr
 
+from .sensor_types import CAUSE as SENSOR_CAUSE, SPEECH as SENSOR_SPEECH, TYPES as SENSOR_TYPES, infer_type
 from .const import (
     ACTION_DISARM,
     ACTION_SILENCE,
@@ -82,6 +83,25 @@ from .const import (
     CONF_SIREN_DURATION,
     CONF_TRIGGER_TIME,
     CONF_TTS_ENTITY,
+    CONF_TTS_ENABLED,
+    CONF_ALEXA_ENABLED,
+    CONF_ALEXA_DEVICES,
+    ALEXA_PLATFORM,
+    CONF_TTS_ENTRY_WARNING,
+    CONF_TTS_HOUSEHOLD,
+    CONF_TTS_SILENT,
+    CONF_TTS_ENTRY_REPEAT,
+    CONF_PINS,
+    CONF_CODE,
+    CONF_BATTERY_ENABLED,
+    CONF_BATTERY_THRESHOLD,
+    CONF_BATTERY_NOTIFY,
+    CONF_SILENCE_CODE,
+    CONF_CODE_MAX_ATTEMPTS,
+    CONF_CODE_LOCKOUT,
+    CONF_WEEK_ENABLED,
+    CONF_WEEK_PLAN,
+    CONF_SENSOR_TYPES,
     CONF_WA_ALL_CLEAR,
     CONF_WA_ENABLED,
     CONF_WA_MESSAGE,
@@ -145,11 +165,14 @@ class SafeHomeController:
         self.trigger_cause: str | None = None
         self.trigger_sensors: list[str] = []  # tatsächlich ausgelöste Melder
         self.household_alerts: set[str] = set()  # Haushalts-Sensoren, die gerade melden
+        # Von der Einstellungsseite ausgelöster Alarm (läuft wie echt, „Rückstellung“ stellt den Zustand davor wieder her)
+        self.drill: dict[str, Any] | None = None
         self.triggered_at: datetime | None = None
         self.siren_active: bool = False
         self.silent_reason: str | None = None  # Grund, warum die Sirene bei diesem Alarm schweigt
         self._silenced: bool = False  # Sirene wurde von Hand stummgeschaltet
-        self._siren_sources: set[str] = set()  # wer die Sirene gerade braucht: "main" oder Teilbereich-ID
+        # wer gerade welche Sirenen braucht: "main" oder Teilbereich-ID -> Entitäten
+        self._siren_sources: dict[str, list[str]] = {}
         self.zones: dict[str, SafeHomeZone] = {}
         self._wa_zone: dict[str, dict[str, Any]] = {}  # WhatsApp-Eskalation je Teilbereich
         self.bypassed: set[str] = set()
@@ -168,6 +191,15 @@ class SafeHomeController:
         self._timer_auto_arm: Callable[[], None] | None = None
         self._timer_night_rearm: Callable[[], None] | None = None
         self.armed_by_automation: bool = False  # wurde der aktuelle Modus von der Automatik gesetzt?
+        self.armed_by_week: bool = False  # wurde der aktuelle Modus vom Wochenplan (Kernzeiten) gesetzt?
+        self._week: tuple[dict[int, str], set[int]] = ({}, set())
+        self._entry_timers: dict[str, Callable[[], None]] = {}
+        self._wrong_codes: int = 0  # falsche PIN-Eingaben in Folge
+        self._battery_map: dict[str, str] = {}  # Batterie-Entität -> überwachter Sensor
+        self.battery_low: dict[str, int | None] = {}  # Sensor -> Ladestand (None = nur „schwach“)
+        self._battery_notified: set[str] = set()
+        self.code_locked_until: datetime | None = None  # PIN-Eingabe gesperrt bis
+        self._entry_gen: dict[str, int] = {}
         # WhatsApp: Eskalations-Timer und bereits benachrichtigte Empfänger des laufenden Alarms
         self._wa_timers: list[Callable[[], None]] = []
         self._wa_alarm_active: bool = False
@@ -247,6 +279,40 @@ class SafeHomeController:
                 result.append(entity_id)
         return result
 
+    # -- Art der Sensoren und passende Texte ------------------------------
+    @property
+    def tts_enabled(self) -> bool:
+        if CONF_TTS_ENABLED in self.entry.options:
+            return bool(self.entry.options[CONF_TTS_ENABLED])
+        # ältere Installationen: aktiv, sobald Dienst und Lautsprecher gewählt sind
+        return bool(self.opt(CONF_TTS_ENTITY)) and bool(self.opt(CONF_MEDIA_PLAYERS))
+
+    def sensor_type(self, entity_id: str) -> str:
+        chosen = (self.opt(CONF_SENSOR_TYPES) or {}).get(entity_id)
+        if chosen in SENSOR_TYPES:
+            return chosen
+        st = self.hass.states.get(entity_id)
+        return infer_type(entity_id, st.attributes.get("device_class") if st else None)
+
+    def sensor_cause(self, entity_id: str) -> str:
+        """Ursache passend zur Art, z. B. „Fenster geöffnet: Küche“."""
+        return self.t(SENSOR_CAUSE[self.sensor_type(entity_id)], name=self.friendly(entity_id))
+
+    def alarm_speech(self, sensors: list[str], cause: str, zone: str | None = None) -> str:
+        """Durchsage bei Alarm – je nach Art des auslösenden Melders."""
+        tail = self.t("Die Bewohner werden benachrichtigt.")
+        if not sensors:
+            head = self.t("Achtung, Alarm im Bereich {zone}!", zone=zone) if zone else self.t("Achtung, Alarm!")
+            return f"{head} {cause}. {tail}"
+        eid = sensors[0]
+        typ = self.sensor_type(eid)
+        if typ == "water":
+            head = self.t("Achtung, Wasseralarm im Bereich {zone}!", zone=zone) if zone else self.t("Achtung, Wasseralarm!")
+        else:
+            head = self.t("Achtung, möglicher Einbruch im Bereich {zone}!", zone=zone) if zone else self.t("Achtung, möglicher Einbruch!")
+        detail = self.t(SENSOR_SPEECH[typ], name=self.friendly(eid))
+        return f"{head} {detail} {tail}"
+
     def friendly(self, entity_id: str) -> str:
         st = self.hass.states.get(entity_id)
         if st is not None and st.attributes.get("friendly_name"):
@@ -277,10 +343,19 @@ class SafeHomeController:
             self.armed_mode = restored_mode
             self.state = MODE_TO_STATE[restored_mode]
             self.armed_by_automation = bool(stored.get("armed_by_automation", False))
+            self.armed_by_week = bool(stored.get("armed_by_week", False))
             self._log(
                 "info",
                 self.t("Nach Neustart wiederhergestellt: {mode}", mode=self.ml(restored_mode)),
             )
+
+        try:
+            locked = dt_util.parse_datetime(stored.get("code_locked_until") or "")
+        except (TypeError, ValueError):
+            locked = None
+        if locked and locked > dt_util.utcnow():
+            self.code_locked_until = locked  # Sperre übersteht einen Neustart
+        self._wrong_codes = int(stored.get("wrong_codes", 0) or 0) if locked else 0
 
         # Personen initialisieren
         for entity_id in self.persons:
@@ -304,6 +379,8 @@ class SafeHomeController:
                 zone = SafeHomeZone(self, cfg)
                 self.zones[zone.id] = zone
                 zone.start((stored.get("zones") or {}).get(zone.id))
+        self._battery_notified = set(stored.get("battery_notified", []))
+        self._setup_battery()
         hh = [item["entity"] for item in self.household_items()]
         if hh:
             self._unsubs.append(
@@ -326,6 +403,9 @@ class SafeHomeController:
                 second=start.second,
             )
         )
+        self._week = self._week_transitions()
+        if self._week[0] or self._week[1]:
+            self._unsubs.append(async_track_time_change(self.hass, self._handle_week_tick, second=0))
         self._unsubs.append(
             async_track_time_change(
                 self.hass,
@@ -353,6 +433,7 @@ class SafeHomeController:
         self._cancel_auto_arm()
         self._cancel_night_rearm()
         self._wa_cancel()
+        self._stop_entry_announcements()
         for zone in self.zones.values():
             zone.stop()
         for tr in self._wa_zone.values():
@@ -370,6 +451,7 @@ class SafeHomeController:
         source = source or self.t("Manuell")
         self._cancel_night_rearm()
         self.armed_by_automation = auto
+        self.armed_by_week = False
         if mode not in MODE_TO_STATE:
             return False
         if self.state in (S.TRIGGERED, S.PENDING):
@@ -443,12 +525,15 @@ class SafeHomeController:
         await self._async_sirens(False)
         if not self.any_zone_alarm():
             await self._async_restore_lights()
+        if self.drill and self.drill["kind"] == "alarm" and not self.drill.get("zone"):
+            self.drill = None
         self.state = S.DISARMED
         self.armed_mode = None
         self.arming_target = None
         self.trigger_cause = None
         self.trigger_sensors = []
         self.armed_by_automation = False
+        self.armed_by_week = False
         self._cancel_night_rearm()
         self.silent_reason = None
         self._silenced = False
@@ -516,10 +601,7 @@ class SafeHomeController:
             self._log("info", self.t("Stiller Alarm – Sirene bleibt aus: {reason}", reason=reason))
             self._async_update()
         await self._async_alarm_lights()
-        if reason is None:
-            await self._async_speak(
-                self.t("Alarm! {cause}. Die Bewohner werden benachrichtigt.", cause=cause)
-            )
+        await self._async_alarm_announcement(self.alarm_speech(list(self.trigger_sensors), cause), reason)
         await self._async_persistent(
             self.t("🚨 Safe Home Alarm"),
             f"{cause} – {dt_util.as_local(self.triggered_at).strftime(date_format(self.hass))}",
@@ -554,7 +636,7 @@ class SafeHomeController:
         self._set_armed(mode, source)
         return True
 
-    async def async_silence(self, source: str | None = None) -> None:
+    async def async_silence(self, source: str | None = None) -> None:  # noqa: D401
         """Sirenen stummschalten, Alarmzustand bleibt erhalten."""
         source = source or self.t("Manuell")
         self._cancel_siren_timer()
@@ -564,9 +646,252 @@ class SafeHomeController:
             self._log("info", self.t("Sirene stummgeschaltet ({source})", source=source))
             self._async_update()
 
+    # -- PINs ----------------------------------------------------------
+    def _pins(self) -> list[dict[str, Any]]:
+        return [p for p in (self.opt(CONF_PINS) or []) if isinstance(p, dict) and p.get("code")]
+
+    @staticmethod
+    def pin_covers(pin: dict[str, Any], area: str) -> bool:
+        areas = pin.get("areas")
+        return areas is None or area in areas
+
+    def code_required_for(self, area: str = "main") -> bool:
+        """Braucht dieser Bereich einen PIN? Nein, wenn die PIN-Funktion aus ist, der Bereich ausgenommen ist
+        oder kein aktiver PIN für ihn gilt."""
+        if self.opt("pins_enabled") is False or area in (self.opt("pin_areas_off") or []):
+            return False
+        pins = self._pins()
+        if pins:
+            return any(p.get("enabled", True) is not False and self.pin_covers(p, area) for p in pins)
+        return bool(self.opt(CONF_CODE))
+
+    @property
+    def code_set(self) -> bool:
+        """PIN für den Hauptbereich nötig?"""
+        return self.code_required_for("main")
+
+    def code_numeric_for(self, area: str = "main") -> bool:
+        codes = [str(p["code"]) for p in self._pins() if self.pin_covers(p, area)] or [str(self.opt(CONF_CODE) or "")]
+        return all(c.isdigit() for c in codes if c)
+
+    @property
+    def code_numeric(self) -> bool:
+        return self.code_numeric_for("main")
+
+    def area_name(self, area: str) -> str:
+        return self.zones[area].name if area in self.zones else self.t("Hauptbereich")
+
+    @staticmethod
+    def pin_status(pin: dict[str, Any], now: datetime) -> str:
+        """active | scheduled | expired | off – Zeitraum in Ortszeit (YYYY-MM-DDTHH:MM)."""
+        if pin.get("enabled", True) is False:
+            return "off"
+        stamp = now.strftime("%Y-%m-%dT%H:%M")
+        if pin.get("start") and stamp < pin["start"]:
+            return "scheduled"
+        if pin.get("end") and stamp >= pin["end"]:
+            return "expired"
+        return "active"
+
+    def verify_pin(self, code: str | None, area: str = "main") -> tuple[bool, str | None]:
+        """(gültig, Name des PIN-Inhabers). Ohne persönliche PINs gilt der allgemeine PIN."""
+        code = (code or "").strip()
+        pins = self._pins()
+        if not pins:
+            legacy = str(self.opt(CONF_CODE) or "")
+            return (not legacy or code == legacy), None
+        now = dt_util.as_local(dt_util.utcnow())
+        for pin in pins:
+            if str(pin["code"]) != code:
+                continue
+            status = self.pin_status(pin, now)
+            if status == "active" and not self.pin_covers(pin, area):
+                self._log("warning", self.t("PIN von {name} gilt nicht für {area}", name=pin.get("name"), area=self.area_name(area)))
+                return False, pin.get("name")
+            if status == "active":
+                return True, pin.get("name")
+            reason = {"scheduled": "PIN von {name} gilt erst ab {start}", "expired": "PIN von {name} ist abgelaufen", "off": "PIN von {name} ist deaktiviert"}[status]
+            try:
+                start = datetime.fromisoformat(pin["start"]).strftime(date_format(self.hass)) if pin.get("start") else ""
+            except (TypeError, ValueError):
+                start = str(pin.get("start") or "")
+            self._log("warning", self.t(reason, name=pin.get("name"), start=start))
+            return False, pin.get("name")
+        return False, None
+
+    # -- Batterien der überwachten Sensoren --------------------------------
+    def _battery_candidates(self, sensor: str) -> list[str]:
+        """Batterie-Entitäten desselben Geräts (sensor mit device_class battery bzw. binary_sensor „Batterie schwach“)."""
+        try:
+            from homeassistant.helpers import entity_registry as er  # noqa: PLC0415
+
+            reg = er.async_get(self.hass)
+            ent = reg.async_get(sensor)
+            if ent is None or not getattr(ent, "device_id", None):
+                return []
+            out = []
+            for other in er.async_entries_for_device(reg, ent.device_id):
+                if other.entity_id == sensor or other.disabled_by:
+                    continue
+                st = self.hass.states.get(other.entity_id)
+                dc = (st.attributes.get("device_class") if st else None) or other.device_class or other.original_device_class
+                if dc == "battery" and other.entity_id.split(".")[0] in ("sensor", "binary_sensor"):
+                    out.append(other.entity_id)
+            return out
+        except Exception:  # noqa: BLE001 – ohne Registry (Test) keine Gerätezuordnung
+            return []
+
+    @callback
+    def _setup_battery(self) -> None:
+        self._battery_map = {}
+        self.battery_low = {}
+        if not self.opt(CONF_BATTERY_ENABLED):
+            return
+        sensors = set(self.all_sensors) | {e for z in self.zones.values() for e in z.sensors}
+        for sensor in sorted(sensors):
+            for bat in self._battery_candidates(sensor):
+                self._battery_map[bat] = sensor
+        watch = sorted(set(self._battery_map) | sensors)  # Sensoren selbst: Attribut battery_level / battery
+        for sensor in sensors:
+            self._battery_map.setdefault(sensor, sensor)
+        if watch:
+            self._unsubs.append(async_track_state_change_event(self.hass, watch, self._handle_battery_event))
+        for ent in watch:
+            self._check_battery(ent, startup=True)
+
+    def _battery_level(self, entity_id: str) -> tuple[bool | None, int | None]:
+        """(schwach?, Prozent) – None, wenn die Entität keine Batterieangabe hat."""
+        st = self.hass.states.get(entity_id)
+        if st is None or st.state in INVALID_STATES:
+            return None, None
+        threshold = int(self.opt(CONF_BATTERY_THRESHOLD) or 20)
+        if self._battery_map.get(entity_id) != entity_id:  # eigene Batterie-Entität
+            if entity_id.startswith("binary_sensor."):
+                return st.state == STATE_ON, None
+            try:
+                level = int(round(float(st.state)))
+            except (TypeError, ValueError):
+                return None, None
+            return level <= threshold, level
+        for attr in ("battery_level", "battery"):  # Batterie als Attribut des Sensors
+            raw = st.attributes.get(attr)
+            if raw is None:
+                continue
+            try:
+                level = int(round(float(raw)))
+            except (TypeError, ValueError):
+                continue
+            return level <= threshold, level
+        if isinstance(st.attributes.get("battery_low"), bool):
+            return st.attributes["battery_low"], None
+        return None, None
+
+    @callback
+    def _handle_battery_event(self, event: Event[EventStateChangedData]) -> None:
+        self._check_battery(event.data["entity_id"])
+
+    @callback
+    def _check_battery(self, entity_id: str, startup: bool = False) -> None:
+        sensor = self._battery_map.get(entity_id)
+        if sensor is None:
+            return
+        low, level = self._battery_level(entity_id)
+        if low is None:
+            return
+        name = self.friendly(sensor)
+        threshold = int(self.opt(CONF_BATTERY_THRESHOLD) or 20)
+        if low:
+            if sensor in self.battery_low and self.battery_low[sensor] == level:
+                return
+            self.battery_low[sensor] = level
+            if sensor in self._battery_notified:
+                self._async_update(save=False)
+                return  # schon gemeldet (auch über einen Neustart hinweg)
+            self._battery_notified.add(sensor)
+            txt = self.t("Batterie schwach: {name} ({level} %)", name=name, level=level) if level is not None else self.t("Batterie schwach: {name}", name=name)
+            self._log("warning", txt)
+            self._async_update()
+            if self.opt(CONF_BATTERY_NOTIFY):
+                self.hass.async_create_task(
+                    self._async_notify(
+                        self.t("🔋 Batterie schwach"),
+                        self.t("{text}. Bitte bald wechseln, damit der Sensor nicht ausfällt.", text=txt),
+                        critical=False,
+                    )
+                )
+            return
+        # wieder gut: mit etwas Abstand zur Schwelle, damit es nicht hin und her springt
+        if sensor in self.battery_low or sensor in self._battery_notified:
+            if level is not None and level <= threshold + 5:
+                return
+            self.battery_low.pop(sensor, None)
+            if sensor in self._battery_notified:
+                self._battery_notified.discard(sensor)
+                if not startup:
+                    self._log("info", self.t("Batterie wieder in Ordnung: {name}", name=name))
+            self._async_update()
+
+    # -- Sperre nach mehreren falschen PINs ------------------------------
+    @property
+    def code_locked(self) -> bool:
+        if self.code_locked_until and dt_util.utcnow() < self.code_locked_until:
+            return True
+        if self.code_locked_until:
+            self.code_locked_until = None  # abgelaufen
+            self._wrong_codes = 0
+        return False
+
+    @property
+    def silence_code_required(self) -> bool:
+        return self.code_set and bool(self.opt(CONF_SILENCE_CODE))
+
+    def code_ok(self) -> None:
+        """Richtiger PIN – Zähler zurücksetzen."""
+        if self._wrong_codes:
+            self._wrong_codes = 0
+            self._async_update()
+
+    def lock_minutes_left(self) -> int:
+        if not self.code_locked_until:
+            return 0
+        return max(1, int(-(-(self.code_locked_until - dt_util.utcnow()).total_seconds() // 60)))
+
+    async def async_locked_attempt(self, action: str) -> None:
+        self._log("warning", self.t("PIN-Eingabe gesperrt – Versuch abgewiesen ({action})", action=action))
+        self._async_update()
+
+    async def check_user_code(self, code: str | None, action: str, area: str = "main") -> tuple[bool, str | None]:
+        """PIN prüfen inkl. Sperre. Gibt (gültig, Inhaber) zurück; zählt Fehlversuche."""
+        if self.code_locked:
+            await self.async_locked_attempt(action)
+            return False, None
+        ok, owner = self.verify_pin(code, area)
+        if ok:
+            self.code_ok()
+        else:
+            await self.async_wrong_code(action)
+        return ok, owner
+
     async def async_wrong_code(self, action: str) -> None:
-        """Falsche PIN protokollieren und ggf. melden."""
+        """Falsche PIN protokollieren, ggf. melden und nach zu vielen Versuchen sperren."""
+        self._wrong_codes += 1
         self._log("warning", self.t("Falscher PIN bei: {action}", action=action))
+        limit = int(self.opt(CONF_CODE_MAX_ATTEMPTS) or 0)
+        if limit and self._wrong_codes >= limit:
+            minutes = max(1, int(self.opt(CONF_CODE_LOCKOUT) or 5))
+            self.code_locked_until = dt_util.utcnow() + timedelta(minutes=minutes)
+            self._log("warning", self.t("{n} falsche PINs – Eingabe für {m} Min. gesperrt", n=self._wrong_codes, m=minutes))
+            self._async_update()
+            # immer melden – unabhängig von „Bei falscher PIN-Eingabe benachrichtigen“
+            await self._async_notify(
+                self.t("🔐 Mehrere falsche PINs"),
+                self.t(
+                    "{n} falsche PIN-Eingaben in Folge (zuletzt: {action}). Die PIN-Eingabe ist für {m} Minuten gesperrt.",
+                    n=self._wrong_codes, action=action, m=minutes,
+                ),
+                critical=True,
+            )
+            return
         self._async_update()
         if self.opt(CONF_NOTIFY_WRONG_CODE):
             await self._async_notify(
@@ -616,9 +941,10 @@ class SafeHomeController:
             self._async_update()
             return self.t("Sirene läuft 3 Sekunden")
         if kind == "tts":
-            if not self.opt(CONF_TTS_ENTITY) or not self.opt(CONF_MEDIA_PLAYERS):
+            players, alexa = self.speech_targets()
+            if not alexa and (not self.opt(CONF_TTS_ENTITY) or not players):
                 return self.t("Sprachausgabe und Lautsprecher auswählen")
-            await self._async_speak(self.t("Dies ist ein Test von Safe Home."))
+            await self._async_speak(self.t("Dies ist ein Test von Safe Home."), force=True)
             return self.t("Testansage gesendet")
         if kind == "lights":
             lights = list(self.opt(CONF_ALARM_LIGHTS) or [])
@@ -647,8 +973,8 @@ class SafeHomeController:
 
     @property
     def night_active(self) -> bool:
-        """Nachtmodus nach Zeitplan an? (einziger Schalter des Moduls)"""
-        return self.night_auto
+        """Nachtmodus nach Zeitplan an? Pausiert, solange der Wochenplan aktiv ist."""
+        return self.night_auto and not self.week_active()
 
     @callback
     def _enable_options(self, updates: dict[str, Any]) -> None:
@@ -786,6 +1112,9 @@ class SafeHomeController:
     async def _async_after_trigger(self) -> None:
         if self.state != S.TRIGGERED:
             return
+        if self.drill and self.drill["kind"] == "alarm" and not self.drill.get("zone"):
+            await self.async_drill_reset()
+            return
         await self._async_sirens(False)
         if self.opt(CONF_REARM) and self.armed_mode in MODE_TO_STATE:
             mode = self.armed_mode
@@ -853,8 +1182,16 @@ class SafeHomeController:
             self._async_update(save=False)
             return
 
+        if self.state == S.PENDING and entity_id not in self.delayed_sensors:
+            # Während der Eingangsverzögerung meldet ein Melder OHNE Verzögerung (z. B. Bewegung im Wohnzimmer)
+            # -> sofort Alarm, nicht erst am Ende des Countdowns
+            self._log("info", self.t("{name} während der Eingangsverzögerung – sofortiger Alarm", name=self.friendly(entity_id)))
+            self.trigger_sensors = [entity_id, *(e for e in self.trigger_sensors if e != entity_id)]
+            self.hass.async_create_task(self.async_trigger(self.sensor_cause(entity_id)))
+            return
+
         if self.state not in ARMED_STATES:
-            # ARMING: Ausgangsverzögerung läuft, PENDING: Eingangsverzögerung läuft
+            # ARMING: Ausgangsverzögerung läuft, PENDING: weiterer verzögerter Melder – Countdown läuft weiter
             self._async_update(save=False)
             return
 
@@ -866,19 +1203,22 @@ class SafeHomeController:
         self.trigger_sensors = [entity_id]
         if entity_id in self.delayed_sensors and entry_delay > 0:
             self.state = S.PENDING
-            self.trigger_cause = self.t("{name} ausgelöst", name=name)
+            self.trigger_cause = self.sensor_cause(entity_id)
             self._start_delay(entry_delay, self._entry_delay_elapsed)
             self._log("pending", self.t("Eingangsverzögerung {delay} s: {name}", delay=entry_delay, name=name))
             self._fire_state_event()
             self._async_update()
-            self.hass.async_create_task(
-                self._async_speak(
-                    self.t("Bitte Alarmanlage innerhalb von {delay} Sekunden ausschalten.", delay=entry_delay)
-                )
+            self.start_entry_announcements(
+                "main",
+                lambda: self.state == S.PENDING,
+                lambda: self.delay_until,
+                lambda n, first: self.t("Bitte Alarmanlage innerhalb von {delay} Sekunden ausschalten.", delay=n)
+                if first
+                else self.t("Bitte Alarmanlage ausschalten – noch {n} Sekunden.", n=n),
             )
             return
 
-        self.hass.async_create_task(self.async_trigger(self.t("{name} ausgelöst", name=name)))
+        self.hass.async_create_task(self.async_trigger(self.sensor_cause(entity_id)))
 
     @callback
     def _handle_person_event(self, event: Event[EventStateChangedData]) -> None:
@@ -1054,24 +1394,41 @@ class SafeHomeController:
     # ------------------------------------------------------------------
     # Ausgänge: Sirene, Licht, Sprache, Benachrichtigung
     # ------------------------------------------------------------------
+    def sirens_for(self, source: str) -> list[str]:
+        """Sirenen einer Quelle: Hauptbereich = gemeinsame Auswahl; Teilbereich = gemeinsam, eigene oder keine."""
+        shared = list(self.opt(CONF_SIRENS) or [])
+        zone = self.zones.get(source)
+        if zone is None:
+            return shared
+        mode = zone.cfg.get("siren_mode", "shared")
+        if mode == "off":
+            return []
+        if mode == "own":
+            return list(zone.cfg.get("sirens") or [])
+        return shared
+
     async def _async_sirens(self, on: bool, source: str = "main") -> None:
-        """Sirene für eine Quelle ein-/ausschalten. Aus erst, wenn keine Quelle sie mehr braucht."""
-        sirens = list(self.opt(CONF_SIRENS) or [])
+        """Sirenen einer Quelle ein-/ausschalten. Eine Sirene geht erst aus, wenn keine Quelle sie mehr braucht."""
         if on:
-            self._siren_sources.add(source)
+            targets = self.sirens_for(source)
+            self._siren_sources[source] = targets
         elif source == "*":
+            targets = sorted({e for ents in self._siren_sources.values() for e in ents} | set(self.opt(CONF_SIRENS) or []))
             self._siren_sources.clear()
         else:
-            self._siren_sources.discard(source)
-        wanted = bool(self._siren_sources)
-        self.siren_active = wanted and bool(sirens)
-        if not sirens or (not on and wanted):
+            gone = self._siren_sources.pop(source, None)
+            if gone is None:
+                gone = self.sirens_for(source)
+            still = {e for ents in self._siren_sources.values() for e in ents}
+            targets = [e for e in gone if e not in still]
+        self.siren_active = any(self._siren_sources.values())
+        if not targets:
             return
         try:
             await self.hass.services.async_call(
                 "homeassistant",
                 "turn_on" if on else "turn_off",
-                {ATTR_ENTITY_ID: sirens},
+                {ATTR_ENTITY_ID: targets},
                 blocking=False,
             )
         except Exception as err:  # noqa: BLE001
@@ -1109,9 +1466,55 @@ class SafeHomeController:
             _LOGGER.warning("Alarmlicht ausschalten: %s", err)
         self._lights_on_by_alarm = []
 
-    async def _async_speak(self, message: str) -> None:
-        tts_entity = self.opt(CONF_TTS_ENTITY)
+    def _platform(self, entity_id: str) -> str | None:
+        try:
+            from homeassistant.helpers import entity_registry as er  # noqa: PLC0415
+
+            ent = er.async_get(self.hass).async_get(entity_id)
+            return ent.platform if ent else None
+        except Exception:  # noqa: BLE001 – im Test ohne Registry
+            return None
+
+    def speech_targets(self) -> tuple[list[str], list[str]]:
+        """(Lautsprecher für TTS, Alexa-Geräte). Alexa-Geräte unter „Lautsprecher“ werden zu Alexa umgeleitet."""
         players = list(self.opt(CONF_MEDIA_PLAYERS) or [])
+        alexa = list(self.opt(CONF_ALEXA_DEVICES) or []) if self.opt(CONF_ALEXA_ENABLED) else []
+        for p in [p for p in players if self._platform(p) == ALEXA_PLATFORM]:
+            players.remove(p)
+            if p not in alexa:
+                alexa.append(p)
+        return players, alexa
+
+    async def _async_alarm_announcement(self, message: str, silent_reason: str | None) -> None:
+        """Alarm-Durchsage – unabhängig von den Sirenen-Regeln, außer es ist so eingestellt."""
+        if not self.tts_enabled:
+            return
+        if silent_reason is not None and not self.opt(CONF_TTS_SILENT):
+            self._log("info", self.t("Keine Ansage – stiller Alarm: {reason}", reason=silent_reason))
+            return
+        players, alexa = self.speech_targets()
+        if not alexa and (not players or not self.opt(CONF_TTS_ENTITY)):
+            self._log("warning", self.t("Keine Ansage – keine Lautsprecher oder Alexa-Geräte ausgewählt"))
+            return
+        await self._async_speak(message)
+
+    async def _async_speak(self, message: str, force: bool = False) -> None:
+        if not force and not self.tts_enabled:
+            return
+        players, alexa = self.speech_targets()
+        if alexa:
+            # Alexa Media Player: Standard-Alexa-Stimme, kein TTS-Dienst
+            try:
+                await self.hass.services.async_call(
+                    "notify",
+                    "alexa_media",
+                    {"message": message, "target": alexa, "data": {"type": "tts"}},
+                    blocking=False,
+                )
+            except Exception as err:  # noqa: BLE001
+                _LOGGER.warning("Alexa-Ansage fehlgeschlagen: %s", err)
+                self._log("warning", self.t("Alexa-Ansage fehlgeschlagen: {err}", err=err))
+        tts_entity = self.opt(CONF_TTS_ENTITY)
         if not tts_entity or not players:
             return
         try:
@@ -1280,10 +1683,26 @@ class SafeHomeController:
         name = self.friendly(entity_id)
         now = dt_util.as_local(dt_util.utcnow()).strftime("%H:%M")
         if new.state == item["state"] and old_state != item["state"] and old_state not in INVALID_STATES:
+            self._household_alert(entity_id, item["state"])
+        elif old_state == item["state"] and new.state != item["state"] and new.state not in INVALID_STATES:
+            self._household_resolved(entity_id, new.state)
+
+    @callback
+    def _household_alert(self, entity_id: str, state: str) -> None:
+        """Haushalts-Meldung: Protokoll, Ansage, Push, WhatsApp."""
+        name = self.friendly(entity_id)
+        now = dt_util.as_local(dt_util.utcnow()).strftime("%H:%M")
+        if True:
             self.household_alerts.add(entity_id)
-            label = self.household_state_label(entity_id, item["state"])
+            label = self.household_state_label(entity_id, state)
             self._log("household", self.t("Haushalt: {name} – {state}", name=name, state=label))
             self._async_update()
+            if self.opt(CONF_TTS_HOUSEHOLD):
+                if self.sensor_type(entity_id) == "water":
+                    speech = self.t("Achtung, Wasseralarm! Wasser erkannt: {name}. Bitte sofort prüfen.", name=name)
+                else:
+                    speech = self.t("Achtung! {name}: {state} erkannt. Bitte prüfen.", name=name, state=label)
+                self.hass.async_create_task(self._async_speak(speech))
             self.hass.async_create_task(
                 self._async_household_notify(
                     self.t("💧 Haushalt: {name}", name=name),
@@ -1291,9 +1710,15 @@ class SafeHomeController:
                     critical=True,
                 )
             )
-        elif old_state == item["state"] and new.state != item["state"] and new.state not in INVALID_STATES:
+
+    @callback
+    def _household_resolved(self, entity_id: str, new_state: str) -> None:
+        """Haushalts-Meldung beendet (Entwarnung)."""
+        name = self.friendly(entity_id)
+        now = dt_util.as_local(dt_util.utcnow()).strftime("%H:%M")
+        if True:
             self.household_alerts.discard(entity_id)
-            label = self.household_state_label(entity_id, new.state)
+            label = self.household_state_label(entity_id, new_state)
             if entity_id.startswith("binary_sensor."):
                 label = label.lower()  # „wieder trocken“
             self._log("info", self.t("Haushalt: {name} wieder {state}", name=name, state=label))
@@ -1337,7 +1762,12 @@ class SafeHomeController:
             EVENT_TRIGGERED,
             {"entry_id": self.entry.entry_id, "name": self.name, "zone": zone.name, "zone_id": zone.id, "cause": cause, "mode": "zone"},
         )
-        reason = self.siren_block_reason(zone.trigger_sensors, zone=True)
+        if zone.cfg.get("siren_mode") == "off":
+            reason = self.t("für {zone} ist keine Sirene eingestellt", zone=zone.name)
+        elif not self.sirens_for(zone.id):
+            reason = self.t("keine Sirene ausgewählt")
+        else:
+            reason = self.siren_block_reason(zone.trigger_sensors, zone=True)
         zone.silent_reason = reason
         if reason is None:
             self._silenced = False
@@ -1345,8 +1775,7 @@ class SafeHomeController:
         else:
             zone._log("info", self.t("Stiller Alarm – Sirene bleibt aus: {reason}", reason=reason))  # noqa: SLF001
         await self._async_alarm_lights()
-        if reason is None:
-            await self._async_speak(self.t("Alarm im Bereich {zone}! {cause}.", zone=zone.name, cause=cause))
+        await self._async_alarm_announcement(self.alarm_speech(list(zone.trigger_sensors), cause, zone=zone.name), reason)
         await self._async_persistent(
             self.t("🚨 Safe Home Alarm – {zone}", zone=zone.name),
             f"{full} – {dt_util.as_local(zone.triggered_at or dt_util.utcnow()).strftime(date_format(self.hass))}",
@@ -1363,7 +1792,130 @@ class SafeHomeController:
         self._wa_zone_start(zone)
         self._async_update()
 
+    # ------------------------------------------------------------------
+    # Wochenplan (Kernzeiten) – greift nur, wenn „Anwesenheit“ ausgeschaltet ist
+    # ------------------------------------------------------------------
+    def _week_transitions(self) -> tuple[dict[int, str], set[int]]:
+        """(Beginn → Modus, Enden) in Minuten der Woche (Mo 00:00 = 0). Lückenlose Balken gelten als einer."""
+        segs: list[list[Any]] = []
+        plan = self.opt(CONF_WEEK_PLAN) or []
+        for day, bars in enumerate(plan[:7]):
+            for start, end, mode in bars:
+                segs.append([day * 1440 + start, day * 1440 + end, mode])
+        segs.sort()
+        merged: list[list[Any]] = []
+        for seg in segs:
+            if merged and seg[0] <= merged[-1][1] and seg[2] == merged[-1][2]:
+                merged[-1][1] = max(merged[-1][1], seg[1])
+            else:
+                merged.append(seg)
+        week = 7 * 1440
+        if len(merged) > 1 and merged[0][0] == 0 and merged[-1][1] == week and merged[0][2] == merged[-1][2]:
+            first = merged.pop(0)  # über Sonntag → Montag hinweg
+            merged[-1][1] = week + first[1]
+        starts = {seg[0] % week: seg[2] for seg in merged}
+        ends = {seg[1] % week for seg in merged if seg[1] - seg[0] < week} - set(starts)
+        return starts, ends
+
+    def week_active(self) -> bool:
+        return bool(self.opt(CONF_WEEK_ENABLED)) and not self.auto_mode
+
+    @callback
+    def _handle_week_tick(self, now: datetime) -> None:
+        if not self.week_active():
+            return
+        local = dt_util.as_local(now)
+        minute = local.weekday() * 1440 + local.hour * 60 + local.minute
+        starts, ends = self._week
+        source = self.t("Kernzeiten")
+        if minute in starts:
+            mode = starts[minute]
+            if self.state in (S.TRIGGERED, S.PENDING) or (self.active_mode == mode and self.state != S.DISARMED):
+                return
+
+            async def _arm() -> None:
+                if await self.async_arm(mode, source):
+                    self.armed_by_week = True
+                    self._async_update()
+
+            self.hass.async_create_task(_arm())
+        elif minute in ends and self.armed_by_week and self.state in (*ARMED_STATES, S.ARMING):
+            self.hass.async_create_task(self.async_disarm(source))
+
+    # ------------------------------------------------------------------
+    # Alarm von einem Sensor auslösen (Einstellungsseite) und Rückstellung
+    # ------------------------------------------------------------------
+    def drill_info(self) -> dict[str, Any]:
+        d = self.drill
+        if not d:
+            return {"active": False}
+        return {"active": True, "kind": d["kind"], "entity": d["entity"], "name": self.friendly(d["entity"]), "zone": d.get("zone")}
+
+    async def async_drill(self, entity_id: str) -> str:
+        """Alarm so auslösen, als hätte der Sensor gemeldet – mit allen echten Ausgängen."""
+        if self.drill:
+            return self.t("Bitte zuerst zurückstellen")
+        name = self.friendly(entity_id)
+        zone = next((z for z in self.zones.values() if entity_id in z.sensors), None)
+        item = next((i for i in self.household_items() if i["entity"] == entity_id), None)
+        if zone is not None:
+            if zone.state == S.TRIGGERED:
+                return self.t("{zone} ist bereits im Alarm", zone=zone.name)
+            self.drill = {"kind": "alarm", "entity": entity_id, "zone": zone.id, "prev": zone.state}
+            zone.trigger_sensors = [entity_id]
+            await zone.async_trigger(self.sensor_cause(entity_id))
+        elif entity_id in self.away_sensors or entity_id in self.night_sensors:
+            if self.state == S.TRIGGERED:
+                return self.t("Die Alarmanlage ist bereits im Alarm")
+            prev = self.armed_mode if self.state in ARMED_STATES or self.state == S.PENDING else None
+            self.drill = {"kind": "alarm", "entity": entity_id, "zone": None, "prev": prev}
+            self._cancel_delay()
+            self._cancel_auto_arm()
+            self.arming_target = None
+            if self.armed_mode is None:
+                self.armed_mode = MODE_AWAY if entity_id in self.away_sensors else MODE_NIGHT
+            self.trigger_sensors = [entity_id]
+            await self.async_trigger(self.sensor_cause(entity_id))
+        elif item is not None:
+            if not self.opt(CONF_HH_ENABLED):
+                return self.t("Haushalt ist ausgeschaltet")
+            self.drill = {"kind": "household", "entity": entity_id, "zone": None, "prev": None, "state": item["state"]}
+            self._household_alert(entity_id, item["state"])
+        else:
+            return self.t("Sensor nicht gefunden")
+        self._async_update()
+        return self.t("Alarm ausgelöst: {name}", name=name)
+
+    async def async_drill_reset(self) -> str:
+        """Alles auf den Zustand vor dem Auslösen zurückstellen."""
+        d, self.drill = self.drill, None
+        if not d:
+            return self.t("Nichts zurückzustellen")
+        source = self.t("Rückstellung")
+        eid = d["entity"]
+        if d["kind"] == "household":
+            alert = d.get("state", "on")
+            if eid.startswith("binary_sensor.") and alert in ("on", "off"):
+                self._household_resolved(eid, "off" if alert == "on" else "on")
+            else:
+                self.household_alerts.discard(eid)
+                self._log("info", self.t("Haushalt: {name} zurückgestellt", name=self.friendly(eid)))
+        elif d.get("zone"):
+            zone = self.zones.get(d["zone"])
+            if zone is not None:
+                await zone.async_disarm(source)
+                if d["prev"] in (S.ARMED_AWAY, S.ARMING):
+                    await zone.async_arm(source, skip_delay=True)
+        else:
+            await self.async_disarm(source)
+            if d["prev"] in MODE_TO_STATE:
+                self._set_armed(d["prev"], source)
+        self._async_update()
+        return self.t("Zurückgestellt")
+
     async def async_zone_alarm_end(self, zone: SafeHomeZone, source: str, was_alarm: bool) -> None:
+        if self.drill and self.drill.get("zone") == zone.id:
+            self.drill = None
         await self._async_sirens(False, zone.id)
         if was_alarm and self.state != S.TRIGGERED and not self.any_zone_alarm(exclude=zone.id):
             await self._async_restore_lights()
@@ -1585,6 +2137,48 @@ class SafeHomeController:
             return self.t("WhatsApp fehlgeschlagen an: {names} – Details im Protokoll", names=", ".join(failed))
         return self.t("WhatsApp-Test gesendet an: {names}", names=", ".join(sent))
 
+    # ------------------------------------------------------------------
+    # Hinweis-Ansage während der Eingangsverzögerung – in Schleife, bis entschärft oder Zeit abgelaufen
+    # ------------------------------------------------------------------
+    @callback
+    def start_entry_announcements(
+        self,
+        key: str,
+        active: Callable[[], bool],
+        until: Callable[[], datetime | None],
+        text: Callable[[int, bool], str],
+    ) -> None:
+        if not self.opt(CONF_TTS_ENTRY_WARNING):
+            return
+        self._stop_entry_announcements(key)
+        gen = self._entry_gen.get(key, 0) + 1
+        self._entry_gen[key] = gen
+        interval = max(0, int(self.opt(CONF_TTS_ENTRY_REPEAT) or 0))
+        if interval:
+            interval = max(5, interval)  # Ansagen dürfen sich nicht überlappen
+
+        @callback
+        def _tick(_now: datetime | None = None, first: bool = False) -> None:
+            self._entry_timers.pop(key, None)
+            if self._entry_gen.get(key) != gen or not active():
+                return
+            end = until()
+            remaining = int(-(-(end - dt_util.utcnow()).total_seconds() // 1)) if end else 0
+            if remaining < 3:
+                return  # gleich beginnt der Alarm – keine Ansage mehr dazwischen
+            self.hass.async_create_task(self._async_speak(text(remaining, first)))
+            if interval and remaining - interval >= 3:
+                self._entry_timers[key] = async_call_later(self.hass, interval, _tick)
+
+        _tick(first=True)
+
+    @callback
+    def _stop_entry_announcements(self, key: str | None = None) -> None:
+        for k in [key] if key else list(self._entry_timers):
+            unsub = self._entry_timers.pop(k, None)
+            if unsub:
+                unsub()
+
     @callback
     def _cancel_delay(self) -> None:
         if self._timer_delay:
@@ -1639,6 +2233,10 @@ class SafeHomeController:
             "auto_mode": self.auto_mode,
             "night_auto": self.night_auto,
             "armed_by_automation": self.armed_by_automation,
+            "armed_by_week": self.armed_by_week,
+            "code_locked_until": self.code_locked_until.isoformat() if self.code_locked_until else None,
+            "battery_notified": sorted(self._battery_notified),
+            "wrong_codes": self._wrong_codes,
             "zones": {zid: z.save_data() for zid, z in self.zones.items()},
             "events": list(self.events),
         }

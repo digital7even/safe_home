@@ -3,7 +3,7 @@
  * Mit ❤️ entwickelt in Deutschland von Digital7even
  * https://github.com/digital7even
  */
-const SH_VERSION = "1.1.0";
+const SH_VERSION = "1.20.0";
 // Build-Kennung aus der Lade-URL (zeigt, ob die aktuelle Datei wirklich geladen wurde)
 const SH_BUILD = (() => {
   try {
@@ -13,6 +13,7 @@ const SH_BUILD = (() => {
   }
 })();
 const LOGO_URL = new URL("./logo-white.png", import.meta.url).href;
+const LOGO_COLOR_URL = new URL("./logo.png", import.meta.url).href;
 
 // ------------------------------------------------------------------ Sprache (Deutsch / Englisch)
 // Texte sind auf Deutsch geschrieben; T() liefert bei jeder anderen Sprache die englische Fassung.
@@ -69,10 +70,34 @@ const SH_EN = {
   "{zone}: Bitte entschärfen": "{zone}: please disarm",
   "ALARM – {zone}": "ALARM – {zone}",
   "Teilbereiche anzeigen": "Show partitions",
+  "Darstellung der Rollos": "Cover style",
+  "Ausblenden": "Hide",
+  "Batterie schwach": "Battery low",
+  "Quadrat": "Square",
+  "Safe Home – Quadrat": "Safe Home – Square",
+  "Quadratische Bedienkarte (1:1) für kleine Displays: Status, Zuhause, Unterwegs, Nacht, PIN-Eingabe und runde Panik-Taste.": "Square control card (1:1) for small displays: status, Home, Away, Night, PIN entry and a round panic button.",
+  "2 s halten": "hold 2 s",
+  "Status (aktueller Modus) anzeigen": "Show status (current mode)",
+  "Personen anzeigen": "Show people",
+  "Anordnung in der Mitte": "Layout of the middle area",
+  "Alles auf einer Ansicht": "Everything in one view",
+  "Zum Wischen (links/rechts)": "Swipe (left/right)",
+  "Panik": "Panic",
+  "Status": "Status",
+  "Zu viele falsche PINs – noch {m} Min. gesperrt": "Too many wrong PINs – locked for {m} more min",
+  "Safe Home – Badge": "Safe Home – Badge",
+  "Kleines, transparentes Badge mit Logo, aktuellem Status und optional den Teilbereichen.": "Small, transparent badge with logo, current status and optionally the partitions.",
+  "Alarmanlage": "Alarm system",
+  "Teilbereiche anzeigen (Punkte)": "Show partitions (dots)",
+  "Namen der Teilbereiche anzeigen": "Show partition names",
+  "Namen der Alarmanlage anzeigen": "Show alarm system name",
+  "Rotes Logo (für helle Hintergründe)": "Red logo (for light backgrounds)",
+  "Klassisch (Balken)": "Classic (bar)",
+  "Animiertes Rollo": "Animated shutter",
   "Direkt in der Karte": "Directly in the card",
   "Als Punkte zum Ausklappen": "As dots to expand",
-  "Teilbereiche (z. B. Garage) direkt als Liste oder platzsparend als Punkte oben rechts – ein Tipp klappt die Steuerung aus. Teilbereiche legst du auf der Safe-Home-Seite unter „Bereiche & Sensoren“ an.":
-    "Partitions (e.g. garage) directly as a list or compactly as dots at the top right – a tap expands the controls. Create partitions on the Safe Home page under “Areas & sensors”.",
+  "Teilbereiche (z. B. Garage) direkt als Liste, platzsparend als Punkte oben rechts (ein Tipp klappt die Steuerung aus) oder ganz ausgeblendet – dann erscheint nur bei einem Alarm im Teilbereich das rote Banner. Teilbereiche legst du auf der Safe-Home-Seite unter „Bereiche & Sensoren“ an.":
+    "Partitions (e.g. garage) directly as a list, compactly as dots at the top right (a tap expands the controls) or hidden completely – then only the red banner appears during an alarm in a partition. Create partitions on the Safe Home page under “Areas & sensors”.",
   "Nicht verfügbar": "Unavailable",
   "Integration prüfen": "Check the integration",
   // Sensoren & Automatik
@@ -82,12 +107,14 @@ const SH_EN = {
   "offen": "open",
   "Alles geschlossen &amp; ruhig": "All closed &amp; quiet",
   "Home-Zone": "Home zone",
+  "Anwesenheit": "Presence detection",
   "Automatik": "Automation",
   "Automatik an": "Automation on",
   "Automatik aus": "Automation off",
   "Nachtzeit": "Night time",
   "Zeitplan an": "Schedule on",
   "Zeitplan aus": "Schedule off",
+  "Pausiert (Wochenplan)": "Paused (weekly schedule)",
   "{n} von {m} zuhause": "{n} of {m} home",
   "Protokoll": "Log",
   "Noch keine Ereignisse": "No events yet",
@@ -275,6 +302,7 @@ function T(de, vars) {
 }
 
 const ICONS = {
+  battery: '<rect x="3" y="7" width="16" height="10" rx="2"/><path d="M21 10.5v3"/><path d="M6.5 10v4"/>',
   home: '<path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v10h13V10"/><path d="M10 20v-5.5h4V20"/>',
   away: '<path d="M12 3 20 6v6c0 5-3.5 8.2-8 9.3C7.5 20.2 4 17 4 12V6z"/><rect x="9" y="11" width="6" height="5" rx="1"/><path d="M10.2 11V9.4a1.8 1.8 0 0 1 3.6 0V11"/>',
   night: '<path d="M20 14.5A8 8 0 0 1 9.5 4 8 8 0 1 0 20 14.5z"/>',
@@ -418,7 +446,7 @@ const icon = (name, cls = "") =>
 // ------------------------------------------------------------------ Hintergrundfarbe
 // Farben der Schaltungen (fest berechnet – funktioniert auch in älteren App-Browsern ohne color-mix)
 const TONE_RGB = {
-  home: [52, 211, 153], away: [79, 141, 255], night: [167, 139, 250], arming: [59, 123, 255],
+  home: [52, 211, 153], away: [255, 186, 94], night: [167, 139, 250], arming: [59, 123, 255],
   pending: [251, 191, 36], alarm: [239, 41, 69], off: [100, 116, 139],
 };
 const shRgba = (rgb, a) => `rgba(${rgb[0]},${rgb[1]},${rgb[2]},${Math.round(a * 1000) / 1000})`;
@@ -510,7 +538,7 @@ const STYLE = `
 :host{
   --sh-bg1:#071538; --sh-bg2:#0b2463; --sh-surface:rgba(255,255,255,.06); --sh-surface2:rgba(255,255,255,.1);
   --sh-line:rgba(160,190,255,.16); --sh-text:#eef3ff; --sh-muted:#9fb1d9; --sh-accent:#3b7bff;
-  --sh-home:#34d399; --sh-away:#4f8dff; --sh-night:#a78bfa; --sh-pending:#fbbf24; --sh-alarm:#ef2945;
+  --sh-home:#34d399; --sh-away:#ffba5e; --sh-night:#a78bfa; --sh-pending:#fbbf24; --sh-alarm:#ef2945;
   --tone:var(--sh-home);
   display:block;
 }
@@ -557,7 +585,7 @@ header{position:relative; display:flex; align-items:center; gap:12px}
 .mode-label{font-size:.86rem; font-weight:600}
 .mode.active{color:#fff; border-color:transparent}
 .mode.active.m-disarm{background:linear-gradient(150deg,#10b981,#047857); box-shadow:0 6px 18px rgba(16,185,129,.35)}
-.mode.active.m-away{background:linear-gradient(150deg,#3b7bff,#1d3fb8); box-shadow:0 6px 18px rgba(59,123,255,.4)}
+.mode.active.m-away{background:linear-gradient(150deg,#ffba5e,#d97a1e); box-shadow:0 6px 18px rgba(255,186,94,.4)}
 .mode.active.m-night{background:linear-gradient(150deg,#8b5cf6,#4c1d95); box-shadow:0 6px 18px rgba(139,92,246,.35)}
 .mode.active .mode-ic{background:rgba(255,255,255,.18)}
 .alarm-actions{display:flex; gap:10px; margin-bottom:12px}
@@ -568,7 +596,7 @@ header{position:relative; display:flex; align-items:center; gap:12px}
 .autorow{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:12px}
 .tog{all:unset; box-sizing:border-box; cursor:pointer; display:flex; align-items:center; gap:8px; padding:11px 10px; border-radius:14px; background:var(--sh-surface); border:1px solid var(--sh-line); color:var(--sh-muted); min-width:0}
 .tog span{flex:1; display:flex; flex-direction:column; min-width:0}
-.tog b{font-size:.85rem; color:var(--sh-text); font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.tog b{font-size:.85rem; color:var(--sh-text); font-weight:600; line-height:1.2; overflow-wrap:anywhere; hyphens:auto; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden}
 .tog small{font-size:.72rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
 .tog.on{color:color-mix(in srgb, var(--sh-accent) 55%, #fff); border-color:color-mix(in srgb, var(--sh-accent) 55%, transparent); background:color-mix(in srgb, var(--sh-accent) 14%, transparent)}
 .sw{position:relative; width:32px; height:18px; border-radius:99px; background:rgba(255,255,255,.15); flex:none; transition:background .2s}
@@ -589,6 +617,7 @@ header{position:relative; display:flex; align-items:center; gap:12px}
 .chip em{font-style:normal; font-size:.7rem; opacity:.75}
 .chip.by{background:rgba(148,163,184,.12); border-color:rgba(148,163,184,.35); color:#cbd5e1}
 .chip.hh{background:rgba(56,189,248,.14); border-color:rgba(56,189,248,.5); color:#bae6fd}
+.chip.bat{background:rgba(251,191,36,.14); border-color:rgba(251,191,36,.5); color:#fde68a}
 .allok{display:flex; align-items:center; gap:8px; font-size:.86rem; color:#a7f3d0}
 .allok .ic{width:18px; height:18px; color:var(--sh-home)}
 .events{list-style:none; margin:0; padding:0}
@@ -607,6 +636,7 @@ header{position:relative; display:flex; align-items:center; gap:12px}
 .overlay{position:absolute; inset:0; z-index:5; display:grid; place-items:center; background:rgba(3,10,35,.86); padding:16px}
 .pad{width:100%; max-width:290px; background:linear-gradient(160deg,#0f2b72,#081a46); border:1px solid var(--sh-line); border-radius:20px; padding:16px; box-shadow:0 20px 50px rgba(0,0,0,.5); display:flex; flex-direction:column; gap:12px}
 .pad-head{display:flex; justify-content:space-between; align-items:center; font-weight:700; font-size:.92rem}
+.pad-lock{display:flex; gap:8px; align-items:center; padding:9px 12px; border-radius:12px; background:rgba(239,41,69,.16); border:1px solid rgba(239,41,69,.45); color:#fecdd3; font-size:.8rem; font-weight:600} .pad-lock .ic{flex:none; width:16px; height:16px}
 .x{all:unset; cursor:pointer; color:var(--sh-muted); display:grid}
 .dots{height:26px; display:flex; justify-content:center; align-items:center; gap:10px}
 .dots i{width:12px; height:12px; border-radius:50%; background:#fff}
@@ -624,7 +654,7 @@ header{position:relative; display:flex; align-items:center; gap:12px}
 .zdots{all:unset; box-sizing:border-box; cursor:pointer; flex:none; display:inline-flex; align-items:center; gap:6px; padding:8px 10px; margin-left:auto; border-radius:999px; background:rgba(255,255,255,.07); border:1px solid var(--sh-line)}
 .zdots:hover, .zdots.open{background:rgba(255,255,255,.14)}
 .zdot{display:inline-block; flex:none; width:10px; height:10px; border-radius:50%; background:#64748b; box-shadow:0 0 0 2px rgba(255,255,255,.08)}
-.zdot.t-home{background:#34d399} .zdot.t-away{background:#4f8dff; box-shadow:0 0 8px rgba(79,141,255,.8)}
+.zdot.t-home{background:#34d399} .zdot.t-away{background:#ffba5e; box-shadow:0 0 8px rgba(255,186,94,.8)}
 .zdot.t-arming{background:#3b7bff; animation:zblink 1s infinite} .zdot.t-pending{background:#fbbf24; animation:zblink .6s infinite}
 .zdot.t-alarm{background:#ef2945; box-shadow:0 0 10px rgba(239,41,69,.9); animation:zblink .5s infinite}
 @keyframes zblink{50%{opacity:.35}}
@@ -632,7 +662,7 @@ header{position:relative; display:flex; align-items:center; gap:12px}
 .zpop-h{font-size:.7rem; font-weight:700; letter-spacing:1.2px; text-transform:uppercase; color:var(--sh-muted); padding:0 4px 2px}
 .zlist{display:flex; flex-direction:column; gap:6px}
 .zrow{display:flex; align-items:center; gap:8px; padding:8px 8px 8px 10px; border-radius:14px; background:var(--sh-surface); border:1px solid var(--sh-line)}
-.zrow.t-away{border-color:rgba(79,141,255,.45)} .zrow.t-alarm{border-color:rgba(239,41,69,.6); background:rgba(239,41,69,.12)} .zrow.t-pending{border-color:rgba(251,191,36,.55)}
+.zrow.t-away{border-color:rgba(255,186,94,.55); background:rgba(255,186,94,.07)} .zrow.t-alarm{border-color:rgba(239,41,69,.6); background:rgba(239,41,69,.12)} .zrow.t-pending{border-color:rgba(251,191,36,.55)}
 .zinfo{all:unset; cursor:pointer; flex:1; min-width:0; display:flex; align-items:center; gap:10px}
 .zinfo > span{display:flex; flex-direction:column; min-width:0}
 .zinfo b{font-size:.9rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
@@ -643,6 +673,7 @@ header{position:relative; display:flex; align-items:center; gap:12px}
 .zbtn .ic{width:16px; height:16px}
 .zbtn.ghost{background:rgba(255,255,255,.08); border-color:var(--sh-line); color:var(--sh-text)}
 .zbtn.danger{background:#ef2945; border-color:#ff6b7f}
+.zbtn.arm{background:linear-gradient(150deg,#ffba5e,#d97a1e); border-color:#ffd08f}
 .zbanner{display:flex; align-items:center; gap:12px; margin:10px 0; padding:12px 14px; border-radius:16px; background:rgba(239,41,69,.18); border:1px solid rgba(239,41,69,.6); animation:zpulse 1.6s infinite}
 .zbanner.pend{background:rgba(251,191,36,.14); border-color:rgba(251,191,36,.55); animation:none}
 .zbanner > .ic{flex:none; width:26px; height:26px; color:#ff8a9a} .zbanner.pend > .ic{color:#fbbf24}
@@ -654,6 +685,105 @@ header{position:relative; display:flex; align-items:center; gap:12px}
 .l-compact .zbanner{margin:8px 0 6px}
 `;
 
+const STYLE_HA = `
+/* ---------- Home-Assistant-Design (Beta) ---------- */
+:host([data-ha]){
+  --sh-bg1:var(--primary-background-color); --sh-bg2:var(--secondary-background-color, var(--primary-background-color));
+  --sh-surface:color-mix(in srgb, var(--primary-text-color) 5%, transparent); --sh-surface2:color-mix(in srgb, var(--primary-text-color) 9%, transparent);
+  --sh-line:var(--divider-color); --sh-text:var(--primary-text-color); --sh-muted:var(--secondary-text-color); --sh-accent:var(--primary-color);
+}
+:host([data-ha]) ha-card{background:var(--ha-card-background, var(--card-background-color)) !important; color:var(--primary-text-color);
+  border:var(--ha-card-border-width, 1px) solid var(--ha-card-border-color, var(--divider-color)); box-shadow:var(--ha-card-box-shadow, none)}
+:host([data-ha]) .glow{display:none}
+:host([data-ha]) .logo,:host([data-ha]) .c-logo,:host([data-ha]) .sq-logo{filter:none}
+:host([data-ha]) .mode:not(.active) .mode-ic{background:var(--sh-surface)}
+:host([data-ha]) .chip,:host([data-ha]) .zbanner,:host([data-ha]) .zpop{color:var(--primary-text-color)}
+:host([data-ha]) .zpop{background:var(--secondary-background-color, var(--card-background-color))}
+:host([data-ha]) .allok{color:var(--success-color, #16a34a)}
+:host([data-ha]) .overlay{background:color-mix(in srgb, var(--primary-background-color) 88%, transparent)}
+:host([data-ha]) .pad{background:var(--card-background-color); color:var(--primary-text-color)}
+:host([data-ha]) .keys button{color:var(--primary-text-color)}
+:host([data-ha]) .cov-btns button,:host([data-ha]) .zbtn.ghost{color:var(--primary-text-color)}
+:host([data-ha]) .sq-av i{color:var(--primary-text-color)}
+:host([data-ha]) .pp{background:var(--sh-surface2); color:var(--primary-text-color); border-color:var(--divider-color)}
+:host([data-ha]) .pp.home{color:var(--primary-text-color); border-color:var(--sh-home)}
+:host([data-ha]) .tog:not(.on) .sw{background:color-mix(in srgb, var(--primary-text-color) 22%, transparent)}
+:host([data-ha]) .tog:not(.on) .sw::after{background:var(--card-background-color, #fff)}
+:host([data-ha]) .tog.on{color:color-mix(in srgb, var(--sh-accent) 70%, var(--primary-text-color))}
+:host([data-ha]) .panic:not(.sq-panic){color:var(--error-color, #db4437); background:color-mix(in srgb, var(--error-color, #db4437) 8%, transparent); border-color:color-mix(in srgb, var(--error-color, #db4437) 50%, transparent)}
+:host([data-ha]) .sq-pager button:not(.on){background:color-mix(in srgb, var(--primary-text-color) 25%, transparent)}
+:host([data-ha]) .sq-ring{background:conic-gradient(var(--tone) calc(var(--p) * 1%), color-mix(in srgb, var(--primary-text-color) 12%, transparent) 0)}
+:host([data-ha]) .sq-bring{background:conic-gradient(var(--primary-text-color) calc(var(--p) * 1%), transparent 0)}
+:host([data-ha]) .av{color:var(--text-primary-color, #fff); background:var(--primary-color); border-color:var(--divider-color)}
+`;
+const STYLE_SQUARE = `
+ha-card.l-square{aspect-ratio:1/1; padding:0; container-type:size; display:flex; flex-direction:column; overflow:hidden}
+.l-square .sq-head{display:flex; align-items:center; gap:3cqw; padding:5cqw 5cqw 0}
+.l-square .sq-logo{width:10cqw; height:10cqw; flex:none}
+.l-square .sq-txt{flex:1; min-width:0; display:flex; flex-direction:column; line-height:1.1}
+.l-square .sq-txt b{font-size:7.5cqw; font-weight:800; color:var(--tone); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.l-square .sq-txt small{font-size:4.2cqw; color:var(--sh-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.l-square .sq-txt .count{color:var(--sh-text); font-weight:800}
+.l-square .sq-dot{flex:none; width:4cqw; height:4cqw; border-radius:50%; background:var(--tone); box-shadow:0 0 3cqw var(--tone)}
+.l-square .sq-ring{flex:none; width:9cqw; height:9cqw; border-radius:50%; background:conic-gradient(var(--tone) calc(var(--p) * 1%), rgba(255,255,255,.1) 0); -webkit-mask:radial-gradient(circle,transparent 55%,#000 57%); mask:radial-gradient(circle,transparent 55%,#000 57%)}
+.l-square .sq-mid{flex:1; min-height:0; display:grid; place-items:center; padding:2cqw 0; position:relative}
+.l-square .sq-mid.swipe{display:flex; flex-direction:column; padding:1cqw 0 0}
+.l-square .sq-track{flex:1; min-height:0; width:100%; display:flex; overflow-x:auto; overflow-y:hidden; scroll-snap-type:x mandatory; scrollbar-width:none; -webkit-overflow-scrolling:touch; overscroll-behavior-x:contain}
+.l-square .sq-track::-webkit-scrollbar{display:none}
+.l-square .sq-slide{flex:0 0 100%; scroll-snap-align:center; display:grid; place-items:center; min-height:0}
+.l-square .sq-pager{display:flex; justify-content:center; gap:2cqw; padding:1.5cqw 0}
+.l-square .sq-pager button{all:unset; cursor:pointer; width:2.2cqw; height:2.2cqw; border-radius:50%; background:rgba(255,255,255,.25); transition:all .2s}
+.l-square .sq-pager button.on{width:6cqw; border-radius:2cqw; background:var(--tone)}
+.l-square .sq-all{display:flex; align-items:center; justify-content:center; gap:4cqw; width:100%; padding:0 4cqw; box-sizing:border-box}
+.l-square .sq-p{display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1.5cqw; text-align:center; min-width:0}
+.l-square .sq-status b{font-size:6cqw; font-weight:800; color:var(--tone)} .l-square .sq-status small,.l-square .sq-people small{font-size:3.6cqw; color:var(--sh-muted)}
+.l-square .sq-big{position:relative; display:grid; place-items:center; width:26cqw; height:26cqw; border-radius:50%; color:var(--tone); background:radial-gradient(circle,rgba(255,255,255,.06),transparent 70%); border:1cqw solid var(--tone); box-sizing:border-box; box-shadow:0 0 6cqw rgba(0,0,0,.25)}
+.l-square .sq-big .ic{width:12cqw; height:12cqw}
+.l-square .sq-bring{position:absolute; inset:-2.2cqw; border-radius:50%; background:conic-gradient(#fff calc(var(--p) * 1%), transparent 0); -webkit-mask:radial-gradient(circle,transparent 66%,#000 68%); mask:radial-gradient(circle,transparent 66%,#000 68%); opacity:.8}
+.l-square .sq-pp{display:flex; flex-wrap:wrap; justify-content:center; gap:2.5cqw; max-width:80cqw}
+.l-square .sq-av{display:flex; flex-direction:column; align-items:center; gap:.8cqw}
+.l-square .sq-av i{display:grid; place-items:center; width:13cqw; height:13cqw; border-radius:50%; overflow:hidden; font-style:normal; font-weight:800; font-size:5cqw; background:rgba(255,255,255,.08); color:var(--sh-muted); border:.7cqw solid rgba(255,255,255,.15); filter:grayscale(1); opacity:.55}
+.l-square .sq-av.home i{filter:none; opacity:1; color:#fff; border-color:var(--sh-home); background:rgba(52,211,153,.18)}
+.l-square .sq-av img{width:100%; height:100%; object-fit:cover}
+.l-square .sq-av em{font-style:normal; font-size:3.2cqw; color:var(--sh-muted); max-width:16cqw; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+/* alles auf einer Ansicht: kleiner */
+.l-square .sq-all.n2 .sq-big{width:20cqw; height:20cqw} .l-square .sq-all.n2 .sq-big .ic{width:9cqw; height:9cqw}
+.l-square .sq-all.n2 .sq-panic{width:min(26cqw,30cqh)}
+.l-square .sq-all.n3{gap:2.5cqw} .l-square .sq-all.n3 .sq-p{flex:1}
+.l-square .sq-all.n3 .sq-big{width:17cqw; height:17cqw; border-width:.8cqw} .l-square .sq-all.n3 .sq-big .ic{width:8cqw; height:8cqw}
+.l-square .sq-all.n3 .sq-status b{font-size:4.4cqw} .l-square .sq-all.n3 small{font-size:3cqw}
+.l-square .sq-all.n3 .sq-panic{width:min(24cqw,28cqh)} .l-square .sq-all.n3 .sq-sos{font-size:6cqw} .l-square .sq-all.n3 .sq-panic small{display:none}
+.l-square .sq-all.n3 .sq-av i{width:8.5cqw; height:8.5cqw; font-size:3.5cqw} .l-square .sq-all.n3 .sq-av em{display:none} .l-square .sq-all.n3 .sq-pp{gap:1.2cqw; max-width:30cqw}
+.l-square .sq-all.n2 .sq-av i{width:10cqw; height:10cqw} .l-square .sq-all.n2 .sq-pp{max-width:40cqw}
+.l-square .sq-panic{all:unset; box-sizing:border-box; position:relative; cursor:pointer; width:min(40cqw,42cqh); aspect-ratio:1; border-radius:50%;
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:.6cqw; margin:0; padding:0;
+  background:radial-gradient(circle at 35% 30%,#ff5a6e,#c81e3a 70%); color:#fff; box-shadow:0 1.5cqw 5cqw rgba(239,41,69,.45), inset 0 -1cqw 2cqw rgba(0,0,0,.25);
+  border:none; user-select:none; -webkit-user-select:none; touch-action:none; -webkit-tap-highlight-color:transparent; transition:transform .15s}
+.l-square .sq-panic:active,.l-square .sq-panic.holding{transform:scale(.95)}
+.l-square .sq-panic .fill{display:none}
+.l-square .sq-sos{font-size:9cqw; font-weight:900; letter-spacing:.5cqw; line-height:1}
+.l-square .sq-panic small{font-size:3.6cqw; font-weight:600; opacity:.85}
+.l-square .sq-prog{position:absolute; inset:-3cqw; width:calc(100% + 6cqw); height:calc(100% + 6cqw); transform:rotate(-90deg); pointer-events:none}
+.l-square .sq-prog circle{fill:none; stroke:#fff; stroke-width:4; stroke-linecap:round; stroke-dasharray:289; stroke-dashoffset:289; opacity:0}
+.l-square .sq-panic.holding .sq-prog circle{opacity:1; stroke-dashoffset:0; transition:stroke-dashoffset 2s linear}
+.l-square .sq-alarm{display:flex; flex-direction:column; align-items:center; gap:2cqw; padding:0 6cqw; text-align:center; color:#fecdd3; font-size:4.6cqw; font-weight:700}
+.l-square .sq-alarm .ic{width:16cqw; height:16cqw; color:var(--sh-alarm); animation:sqBlink .8s infinite}
+@keyframes sqBlink{50%{opacity:.35}}
+.l-square .sq-modes{display:grid; grid-template-columns:repeat(3,1fr); gap:2.5cqw; padding:0 4cqw 4cqw}
+.l-square .sq-modes .mode{padding:2.5cqw 1cqw; gap:1.2cqw; border-radius:4cqw; min-height:0}
+.l-square .sq-modes .mode-ic{width:10cqw; height:10cqw; border-radius:3cqw}
+.l-square .sq-modes .mode-ic .ic{width:6cqw; height:6cqw}
+.l-square .sq-modes .mode-label{font-size:3.8cqw; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%}
+.l-square .overlay{padding:3cqw}
+.l-square .pad{max-width:none; width:100%; height:100%; padding:3cqw; gap:2cqw; border-radius:5cqw; display:flex; flex-direction:column}
+.l-square .pad-head{font-size:4.2cqw}
+.l-square .pad-head .x{width:8cqw; height:8cqw}
+.l-square .pad-lock{font-size:3.4cqw; padding:1.5cqw 2.5cqw}
+.l-square .dots{min-height:6cqw; font-size:3.8cqw}
+.l-square .keys{flex:1; min-height:0; display:grid; grid-template-columns:repeat(3,1fr); grid-auto-rows:1fr; gap:2cqw}
+.l-square .keys button{height:auto; min-height:0; font-size:6cqw; border-radius:3cqw; padding:0}
+.l-square .codein{font-size:5cqw}
+`;
 const STYLE_COMPACT = `
 ha-card.l-compact{padding:14px}
 .l-compact .glow{width:55%; height:140%; inset:-60% -15% auto auto}
@@ -845,6 +975,21 @@ ha-card.fs{min-height:100vh; min-height:100dvh; border-radius:0; border:none; bo
 .cov-name{all:unset; cursor:pointer; flex:1; min-width:0; display:flex; flex-direction:column; gap:3px}
 .cov-name b{font-size:.9rem; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
 .cov-name small{font-size:.74rem; color:var(--sh-muted)}
+/* Animiertes Rollo – 42 × 42 px wie die Tasten, die Karte wird nicht größer */
+.cov-win{all:unset; box-sizing:border-box; cursor:pointer; position:relative; flex:none; width:42px; height:42px; border-radius:10px; overflow:hidden;
+  border:2px solid rgba(199,214,255,.45); background:#0b1a44; box-shadow:inset 0 0 0 1px rgba(0,0,0,.35)}
+.d-tablet .cov-win{width:50px; height:50px}
+.cov-sky{position:absolute; inset:0; background:linear-gradient(180deg,#7dd3fc 0%,#bae6fd 55%,#fde68a 100%);
+  background-image:linear-gradient(180deg,#7dd3fc 0%,#bae6fd 55%,#fde68a 100%), linear-gradient(90deg,transparent 48%,rgba(255,255,255,.55) 48%,rgba(255,255,255,.55) 52%,transparent 52%)}
+.cov-win::after{content:""; position:absolute; inset:0; background:linear-gradient(90deg,transparent calc(50% - 1px),rgba(30,41,59,.55) calc(50% - 1px),rgba(30,41,59,.55) calc(50% + 1px),transparent calc(50% + 1px)); pointer-events:none}
+.cov-shut{position:absolute; left:0; right:0; top:0; z-index:1; transition:height .9s cubic-bezier(.4,0,.2,1);
+  background:repeating-linear-gradient(180deg,#cbd5e1 0 4px,#94a3b8 4px 5px); box-shadow:0 2px 3px rgba(0,0,0,.35)}
+.cov-rail{position:absolute; left:0; right:0; bottom:-1px; height:3px; background:#475569}
+.cov-win.mv .cov-shut{background-size:100% 10px; animation:covRoll .5s linear infinite}
+.cov-win.mv.opening .cov-shut{animation-direction:reverse}
+@keyframes covRoll{to{background-position:0 10px}}
+.cov-pct{position:absolute; z-index:2; left:0; right:0; bottom:2px; text-align:center; font-size:.62rem; font-weight:800; color:#fff; text-shadow:0 1px 2px rgba(0,0,0,.9), 0 0 4px rgba(0,0,0,.6)}
+.cov-anim .cov-name{gap:2px}
 .cov-bar{position:relative; display:block; height:4px; border-radius:4px; background:rgba(255,255,255,.08); overflow:hidden; margin-top:2px}
 .cov-bar i{position:absolute; inset:0 auto 0 0; background:var(--sh-accent); border-radius:4px}
 .cov-btns{display:flex; gap:6px}
@@ -907,7 +1052,13 @@ ha-card.fs{min-height:100vh; min-height:100dvh; border-radius:0; border:none; bo
   --divider-color:var(--sh-line); --primary-color:var(--sh-accent); --accent-color:var(--sh-accent);
   --state-icon-color:var(--sh-muted); --paper-item-icon-color:var(--sh-muted); --sidebar-text-color:var(--sh-text);
   --secondary-background-color:rgba(255,255,255,.06); --primary-background-color:var(--sh-bg1);
-  --mdc-theme-primary:var(--sh-accent); --mdc-theme-surface:var(--sh-bg2); --mdc-theme-text-primary-on-background:var(--sh-text)}
+  --mdc-theme-primary:var(--sh-accent); --mdc-theme-surface:var(--sh-bg2); --mdc-theme-text-primary-on-background:var(--sh-text);
+  --ha-color-form-background:var(--sh-bg2); --ha-color-form-background-hover:#123a9a; --ha-color-form-background-disabled:var(--sh-bg1);
+  --ha-color-surface-default:var(--sh-bg2); --ha-color-text-primary:var(--sh-text); --ha-color-text-secondary:var(--sh-muted);
+  --input-fill-color:rgba(255,255,255,.06); --input-ink-color:var(--sh-text); --input-label-ink-color:var(--sh-muted);
+  --mdc-select-fill-color:rgba(255,255,255,.06); --mdc-select-ink-color:var(--sh-text); --mdc-text-field-fill-color:rgba(255,255,255,.06); --mdc-text-field-ink-color:var(--sh-text);
+  --md-sys-color-surface:var(--sh-bg2); --md-sys-color-surface-container:var(--sh-bg2); --md-sys-color-on-surface:var(--sh-text);
+  --md-menu-container-color:var(--sh-bg2); --wa-color-surface-default:var(--sh-bg2); --wa-color-surface-raised:var(--sh-bg2); --wa-color-text-normal:var(--sh-text)}
 .cu-embed > *{display:block}
 .cu-custom .cu-embed{--ha-card-background:transparent; --ha-card-border-width:0; --ha-card-border-color:transparent; margin:-8px -16px -16px}
 .cu-embed-msg{display:flex; align-items:center; gap:10px; padding:16px; border:1px dashed var(--sh-line); border-radius:14px; color:var(--sh-muted); font-size:.85rem; margin:0}
@@ -941,7 +1092,7 @@ function shWidgetActive(id, c) {
   const has = (k) => Array.isArray(c[k]) && c[k].length > 0;
   return {
     alarm: true,
-    zones: c.zones_display !== "dots",
+    zones: c.zones_display !== "dots" && c.zones_display !== "hidden",
     people: on("show_people"),
     automation: on("show_automation"),
     panic: on("show_panic"),
@@ -1017,6 +1168,9 @@ const EDITOR_LABELS = {
   show_events: "Protokoll anzeigen",
   events_count: "Anzahl Protokolleinträge",
   show_panic: "Panik-Taste anzeigen",
+  square_status: "Status (aktueller Modus) anzeigen",
+  square_persons: "Personen anzeigen",
+  square_view: "Anordnung in der Mitte",
   zones_display: "Teilbereiche anzeigen",
   device: "Gerät",
   fullscreen: "Vollbild (für Panel-Ansicht)",
@@ -1035,6 +1189,7 @@ const EDITOR_LABELS = {
   cover_entities: "Rollos / Jalousien",
   covers_group_by_area: "Nach Räumen gruppieren",
   show_cover_all: "Tasten „Alle hoch / runter“",
+  covers_design: "Darstellung der Rollos",
   show_lights: "Licht anzeigen",
   light_entities: "Lampen & Schalter",
   show_scenes: "Szenen & Skripte anzeigen",
@@ -1059,7 +1214,7 @@ const EDITOR_HELPERS = {
   climate_entities: "Temperatur und Luftfeuchte desselben Geräts werden automatisch zu einer Kachel zusammengefasst, benannt nach dem Raum.",
   cover_entities: "Rollos werden nach dem Bereich (Raum) gruppiert, der in Home Assistant hinterlegt ist.",
   fullscreen: "Füllt den ganzen Bildschirm – ideal in einer Ansicht vom Typ „Panel“.",
-  zones_display: "Teilbereiche (z. B. Garage) direkt als Liste oder platzsparend als Punkte oben rechts – ein Tipp klappt die Steuerung aus. Teilbereiche legst du auf der Safe-Home-Seite unter „Bereiche & Sensoren“ an.",
+  zones_display: "Teilbereiche (z. B. Garage) direkt als Liste, platzsparend als Punkte oben rechts (ein Tipp klappt die Steuerung aus) oder ganz ausgeblendet – dann erscheint nur bei einem Alarm im Teilbereich das rote Banner. Teilbereiche legst du auf der Safe-Home-Seite unter „Bereiche & Sensoren“ an.",
   fuel_entities: "Preis-Sensoren deiner Tankstellen, z. B. aus Tankerkönig (Super oder Super E10). Es werden höchstens 4 angezeigt; die günstigste geöffnete Tankstelle wird hervorgehoben.",
   ...Object.fromEntries(
     SH_EMBED_SLOTS.map((n) => [
@@ -1158,16 +1313,17 @@ class SafeHomeCard extends HTMLElement {
 
   _layout() {
     const l = this._config?.layout || this.constructor.defaultLayout || "standard";
-    return ["standard", "compact", "tablet", "custom"].includes(l) ? l : "standard";
+    return ["standard", "compact", "tablet", "custom", "square"].includes(l) ? l : "standard";
   }
 
   getCardSize() {
-    return { compact: 3, tablet: 9, standard: 8, custom: 12 }[this._layout()];
+    return { compact: 3, tablet: 9, standard: 8, custom: 12, square: 5 }[this._layout()];
   }
 
   getGridOptions() {
     const l = this._layout();
     if (l === "compact") return { columns: 6, min_columns: 4, rows: "auto" };
+    if (l === "square") return { columns: 6, min_columns: 4, rows: "auto" };
     if (l === "tablet" || l === "custom") return { columns: "full", min_columns: 12, rows: "auto" };
     return { columns: 12, min_columns: 6, rows: "auto" };
   }
@@ -1238,12 +1394,19 @@ class SafeHomeCard extends HTMLElement {
   // ---------------------------------------------------------------- Aktionen
   _needsCode(action) {
     const a = this._hass.states[this._entityId()]?.attributes || {};
-    if (!a.code_format) return false;
     if (action.startsWith("zone:")) {
-      const act = action.split(":")[1];
-      return act === "disarm" || (act === "arm" && !!a.code_arm_required);
+      // Teilbereiche haben eine eigene PIN-Pflicht
+      const [, act, zentity] = action.split(":");
+      const z = (a.zones || []).find((x) => x.entity_id === zentity);
+      const zst = this._hass.states[zentity]?.attributes || {};
+      const req = z && "code_required" in z ? !!z.code_required : !!zst.code_format;
+      const armReq = z && "code_arm_required" in z ? !!z.code_arm_required : !!zst.code_arm_required;
+      if (!req) return false;
+      return act === "disarm" || (act === "arm" && armReq);
     }
+    if (!a.code_format) return false;
     if (action === "disarm") return true;
+    if (action === "silence") return !!a.silence_code_required;
     if (action === "away" || action === "night") return !!a.code_arm_required;
     return false;
   }
@@ -1292,7 +1455,7 @@ class SafeHomeCard extends HTMLElement {
     if (code) data.code = code;
     try {
       if (svc) await this._hass.callService("alarm_control_panel", svc, data);
-      else if (action === "silence") await this._hass.callService("safe_home", "silence", { entity_id });
+      else if (action === "silence") await this._hass.callService("safe_home", "silence", code ? { entity_id, code } : { entity_id });
       else if (action === "panic") await this._hass.callService("safe_home", "panic", { entity_id });
       else if (action === "skipdelay") await this._hass.callService("safe_home", "skip_exit_delay", { entity_id });
       this._keypad = null;
@@ -1317,6 +1480,113 @@ class SafeHomeCard extends HTMLElement {
       this._toast = null;
       this._render();
     }, 3500);
+  }
+
+  // ------------------------------------------------------------ Quadrat (1:1)
+  _renderSquare({ a, st, state, info, sub, title, showRing, rem, total, modeBtn, isAway, isNight }) {
+    const cfg = this._config;
+    const ringPct = showRing ? Math.max(0, Math.min(100, (100 * rem) / total)) : 0;
+    const panels = [];
+    // Status: aktueller Modus groß
+    if (cfg.square_status === true) {
+      panels.push([
+        "status",
+        T("Status"),
+        `<div class="sq-p sq-status"><span class="sq-big">${icon(info.icon)}${showRing ? `<i class="sq-bring" style="--p:${ringPct}"></i>` : ""}</span>
+          <b>${esc(info.label)}</b><small>${showRing ? `${esc(sub)} ${rem}s` : esc(state === "triggered" ? a.trigger_cause || info.sub : info.sub)}</small></div>`,
+      ]);
+    }
+    // Personen
+    const persons = a.persons || [];
+    if (cfg.square_persons === true && persons.length) {
+      const home = persons.filter((p) => this._hass.states[p]?.state === "home").length;
+      panels.push([
+        "persons",
+        T("Personen"),
+        `<div class="sq-p sq-people"><div class="sq-pp">${persons
+          .slice(0, 6)
+          .map((p) => {
+            const s = this._hass.states[p];
+            const at = s?.state === "home";
+            const nm = (s?.attributes?.friendly_name || p).split(" ")[0];
+            const pic = s?.attributes?.entity_picture;
+            return `<span class="sq-av ${at ? "home" : ""}" title="${esc(nm)}"><i>${pic ? `<img src="${esc(pic)}" alt="">` : esc(nm.slice(0, 1).toUpperCase())}</i><em>${esc(nm)}</em></span>`;
+          })
+          .join("")}</div><small>${T("{n} von {m} zuhause", { n: home, m: persons.length })}</small></div>`,
+      ]);
+    }
+    // Panik-Taste
+    if (cfg.show_panic !== false && st) {
+      panels.push([
+        "panic",
+        T("Panik"),
+        state === "triggered"
+          ? `<div class="sq-p sq-alarm">${icon("alarm")}<span>${esc(a.trigger_cause || info.sub)}</span></div>`
+          : `<div class="sq-p"><button class="panic sq-panic" data-hold="panic" aria-label="${T("Panikalarm – 2 Sekunden halten")}">
+              <svg class="sq-prog" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="46"></circle></svg>
+              <span class="sq-sos">SOS</span><small>${T("2 s halten")}</small></button></div>`,
+      ]);
+    }
+    const swipe = cfg.square_view === "swipe" && panels.length > 1;
+    if (this._sqSlide == null || this._sqSlide >= panels.length) this._sqSlide = 0;
+    let mid;
+    if (!panels.length) mid = "";
+    else if (swipe)
+      mid = `<div class="sq-track" data-sqtrack>${panels.map(([k, , html]) => `<div class="sq-slide" data-k="${k}">${html}</div>`).join("")}</div>
+        <div class="sq-pager">${panels
+          .map(([k, l], i) => `<button class="${i === this._sqSlide ? "on" : ""}" data-sqgo="${i}" aria-label="${esc(l)}"></button>`)
+          .join("")}</div>`;
+    else mid = `<div class="sq-all n${panels.length}">${panels.map(([, , html]) => html).join("")}</div>`;
+    return `
+        <div class="sq-head">
+          <img class="sq-logo" src="${this._logo()}" alt="">
+          <div class="sq-txt"><b>${esc(info.label)}</b><small>${showRing ? `${esc(sub)} <span class="count">${rem}s</span>` : esc(title)}</small></div>
+          ${showRing ? `<i class="sq-ring" style="--p:${ringPct}"></i>` : `<i class="sq-dot"></i>`}
+        </div>
+        <div class="sq-mid ${swipe ? "swipe" : ""}">${mid}</div>
+        <div class="sq-modes">
+          ${modeBtn("disarm", T("Zuhause"), "home", state === "disarmed")}
+          ${modeBtn("away", T("Unterwegs"), "away", isAway)}
+          ${modeBtn("night", T("Nacht"), "night", isNight)}
+        </div>`;
+  }
+
+  _bindSquare(root) {
+    const track = root.querySelector("[data-sqtrack]");
+    if (!track) return;
+    const go = (i, smooth) => {
+      this._sqSlide = i;
+      track.scrollTo({ left: i * track.clientWidth, behavior: smooth ? "smooth" : "auto" });
+      root.querySelectorAll("[data-sqgo]").forEach((b, k) => b.classList.toggle("on", k === i));
+    };
+    requestAnimationFrame(() => go(this._sqSlide || 0, false));
+    let t;
+    track.addEventListener("scroll", () => {
+      clearTimeout(t);
+      t = setTimeout(() => {
+        const i = Math.round(track.scrollLeft / Math.max(1, track.clientWidth));
+        if (i !== this._sqSlide) go(i, false);
+      }, 80);
+    });
+    root.querySelectorAll("[data-sqgo]").forEach((b) => b.addEventListener("click", () => go(Number(b.dataset.sqgo), true)));
+    // Wischen auch mit der Maus (Desktop) – auf der Panik-Taste selbst nicht
+    let x0 = null;
+    track.addEventListener("pointerdown", (e) => {
+      if (e.pointerType === "mouse" && !e.target.closest("[data-hold]")) x0 = e.clientX;
+    });
+    track.addEventListener("pointerup", (e) => {
+      if (x0 == null) return;
+      const dx = e.clientX - x0;
+      x0 = null;
+      const n = track.children.length;
+      if (Math.abs(dx) > 30) go(Math.max(0, Math.min(n - 1, (this._sqSlide || 0) + (dx < 0 ? 1 : -1))), true);
+    });
+  }
+
+  /** Weißes Logo im eigenen Design, rotes im Home-Assistant-Design (heller Hintergrund möglich). */
+  _logo() {
+    const a = this._hass?.states?.[this._entityId?.()]?.attributes;
+    return a?.ui_theme === "ha" ? LOGO_COLOR_URL : LOGO_URL;
   }
 
   _startHold(btn) {
@@ -1395,12 +1665,15 @@ class SafeHomeCard extends HTMLElement {
       const monitored = new Set([...(a.away_sensors || []), ...(a.night_sensors || [])]);
       const items = [...new Set([...open, ...bypassed])];
       const household = a.household_alerts || [];
+      const battery = Array.isArray(a.battery_low) ? a.battery_low : [];
       sensorsHtml = `
         <div class="section">
           <div class="sec-head"><span>${T("Sensoren")}</span><span class="muted">${T("{n} überwacht", { n: monitored.size })}</span></div>
           ${
-            items.length || household.length
-              ? `<div class="chips">${household
+            items.length || household.length || battery.length
+              ? `<div class="chips">${battery
+                  .map((b) => `<span class="chip bat">${icon("battery")}${esc(this._name(b.entity))}<em>${b.level != null ? `${b.level} %` : T("Batterie schwach")}</em></span>`)
+                  .join("")}${household
                   .map((e) => `<span class="chip hh">${icon("drop")}${esc(this._name(e))}<em>${T("Haushalt")}</em></span>`)
                   .join("")}${items
                   .map((e) => {
@@ -1433,10 +1706,10 @@ class SafeHomeCard extends HTMLElement {
       autoHtml = `
         <div class="autorow">
           <button class="tog ${autoOn ? "on" : ""}" data-toggle="${esc(a.auto_mode_entity || "")}">
-            ${icon("pin")}<span><b>${T("Home-Zone")}</b><small>${autoOn ? T("Automatik an") : T("Automatik aus")}</small></span><i class="sw"></i>
+            ${icon("pin")}<span><b>${T("Anwesenheit")}</b><small>${autoOn ? T("Automatik an") : T("Automatik aus")}</small></span><i class="sw"></i>
           </button>
           <button class="tog ${nightOn ? "on" : ""}" data-toggle="${esc(a.night_auto_entity || "")}">
-            ${icon("night")}<span><b>${T("Nachtzeit")}</b><small>${nightOn ? T("Zeitplan an") : T("Zeitplan aus")}</small></span><i class="sw"></i>
+            ${icon("night")}<span><b>${T("Nachtzeit")}</b><small>${a.week_active && nightOn ? T("Pausiert (Wochenplan)") : nightOn ? T("Zeitplan an") : T("Zeitplan aus")}</small></span><i class="sw"></i>
           </button>
         </div>
         ${persons.length ? `<div class="people">${ppl}<span class="muted">${T("{n} von {m} zuhause", { n: a.people_home ?? 0, m: persons.length })}</span></div>` : ""}`;
@@ -1477,18 +1750,27 @@ class SafeHomeCard extends HTMLElement {
 
     // PIN-Feld
     let keypadHtml = "";
+    let lockHtml = "";
     if (this._keypad) {
-      const numeric = a.code_format === "number";
+      let numeric = a.code_format === "number";
+      if (this._keypad.action.startsWith("zone:")) {
+        const z = (a.zones || []).find((x) => x.entity_id === this._keypad.action.split(":")[2]);
+        if (z && "code_numeric" in z) numeric = !!z.code_numeric;
+      }
       let label;
       if (this._keypad.action.startsWith("zone:")) {
         const [, act, zentity] = this._keypad.action.split(":");
         const zname = (a.zones || []).find((z) => z.entity_id === zentity)?.name || "";
         label = `${zname} – ${act === "arm" ? T("Scharf schalten") : T("Unscharf schalten")}`;
-      } else label = T({ disarm: "Zuhause – unscharf schalten", away: "Unterwegs aktivieren", night: "Nacht aktivieren" }[this._keypad.action]);
+      } else label = T({ disarm: "Zuhause – unscharf schalten", away: "Unterwegs aktivieren", night: "Nacht aktivieren", silence: "Sirene stumm" }[this._keypad.action]);
+      const lockedUntil = a.code_locked_until ? new Date(a.code_locked_until) : null;
+      const lockMin = lockedUntil && lockedUntil > Date.now() ? Math.max(1, Math.ceil((lockedUntil - Date.now()) / 60000)) : 0;
+      lockHtml = lockMin ? `<div class="pad-lock">${icon("warn")}<span>${T("Zu viele falsche PINs – noch {m} Min. gesperrt", { m: lockMin })}</span></div>` : "";
       keypadHtml = `
         <div class="overlay">
           <div class="pad">
             <div class="pad-head"><span>${esc(label)}</span><button class="x" data-pad="cancel" aria-label="${T("Abbrechen")}">${icon("close")}</button></div>
+            ${lockHtml}
             ${
               numeric
                 ? `<div class="dots">${
@@ -1507,7 +1789,7 @@ class SafeHomeCard extends HTMLElement {
 
     const headerHtml = `
         <header>
-          <img class="logo" src="${LOGO_URL}" alt="Safe Home Logo">
+          <img class="logo" src="${this._logo()}" alt="Safe Home Logo">
           <div class="ttl"><h2>${esc(title)}</h2><span>${T("Alarmanlage")}</span></div>
           <!--zdots--><span class="pill">${esc(info.label)}</span>
         </header>`;
@@ -1540,7 +1822,7 @@ class SafeHomeCard extends HTMLElement {
     const layout = this._layout();
     // ---- Teilbereiche (Garage, Nebengebäude …)
     const zones = Array.isArray(a.zones) ? a.zones : [];
-    const zoneMode = layout === "compact" ? "dots" : layout === "standard" ? "inline" : cfg.zones_display === "dots" ? "dots" : "inline";
+    const zoneMode = layout === "square" ? "hidden" : layout === "compact" ? "dots" : layout === "standard" ? "inline" : cfg.zones_display === "dots" ? "dots" : cfg.zones_display === "hidden" ? "hidden" : "inline";
     const zRows = zones.map((z) => this._zoneRow(z)).join("");
     const zInline = zones.length && zoneMode === "inline" ? `<div class="section zsec"><div class="sec-head"><span>${T("Teilbereiche")}</span></div><div class="zlist">${zRows}</div></div>` : "";
     const zDots =
@@ -1562,12 +1844,14 @@ class SafeHomeCard extends HTMLElement {
       .join("");
     this._zoneParts = { zInline, zDots, zPop, zBanner };
     let body;
-    if (layout === "compact") {
+    if (layout === "square") {
+      body = this._renderSquare({ a, st, state, info, sub, title, showRing, rem, total, modeBtn, isAway, isNight });
+    } else if (layout === "compact") {
       body = `
         <div class="c-head">
           <div class="c-ic">${icon(info.icon)}</div>
           <div class="c-txt">
-            <div class="c-title"><img class="c-logo" src="${LOGO_URL}" alt="">${esc(title)}</div>
+            <div class="c-title"><img class="c-logo" src="${this._logo()}" alt="">${esc(title)}</div>
             <div class="c-state">${esc(info.label)}<span class="c-sub">${esc(sub)}${showRing ? ` <span class="count">${rem}s</span>` : ""}</span></div>
           </div>
           ${state === "triggered" && a.siren_active ? `<button class="c-mute" data-action="silence" aria-label="${T("Sirene stumm")}">${icon("mute")}</button>` : ""}
@@ -1614,10 +1898,12 @@ class SafeHomeCard extends HTMLElement {
     }
 
     // Eigene Hintergrundfarbe (RGB-Regler)
-    const bgStyle = esc(shColorCard(cfg));
+    const haTheme = a.ui_theme === "ha";
+    this.toggleAttribute("data-ha", haTheme);
+    const bgStyle = haTheme ? "" : esc(shColorCard(cfg));
 
     this.shadowRoot.innerHTML = `
-      <style>${STYLE}${layout === "compact" ? STYLE_COMPACT : ""}${layout === "tablet" ? STYLE_TABLET : ""}${layout === "custom" ? STYLE_TABLET + STYLE_CUSTOM : ""}</style>
+      <style>${STYLE}${STYLE_HA}${layout === "compact" ? STYLE_COMPACT : ""}${layout === "square" ? STYLE_SQUARE : ""}${layout === "tablet" ? STYLE_TABLET : ""}${layout === "custom" ? STYLE_TABLET + STYLE_CUSTOM : ""}</style>
       <ha-card class="tone-${info.tone} l-${layout} ${layout === "custom" ? this._customClasses() : ""}" style="${bgStyle}">
         <div class="glow" style="background:radial-gradient(closest-side, ${shRgba(TONE_RGB[info.tone] || TONE_RGB.off, layout === "custom" ? 0.28 : 0.3)}, rgba(0,0,0,0))"></div>
         ${body}
@@ -1645,7 +1931,7 @@ class SafeHomeCard extends HTMLElement {
     const btn = (act, txt, ic, cls = "") => `<button class="zbtn ${cls}" data-action="zone:${act}:${e}">${icon(ic)}<span>${txt}</span></button>`;
     let btns = "";
     if (!z.entity_id) btns = "";
-    else if (z.state === "disarmed") btns = btn("arm", T("Scharf"), "away");
+    else if (z.state === "disarmed") btns = btn("arm", T("Scharf"), "away", "arm");
     else if (z.state === "arming") btns = btn("skip", T("Sofort"), "check") + btn("disarm", T("Abbrechen"), "close", "ghost");
     else if (z.state === "armed_away") btns = btn("disarm", T("Unscharf"), "home", "ghost");
     else btns = btn("disarm", T("Entschärfen"), "home", "danger");
@@ -1889,9 +2175,17 @@ class SafeHomeCard extends HTMLElement {
       const lbl = { open: "Offen", closed: "Geschlossen", opening: "Öffnet …", closing: "Schließt …" }[st];
       const label = pos != null ? T("{p} % offen", { p: pos }) : lbl ? T(lbl) : st || "–";
       const moving = st === "opening" || st === "closing";
-      return `<div class="cov">
-        <button class="cov-name" data-more="${esc(eid)}"><b>${esc(name)}</b><small>${esc(label)}</small>
-          <i class="cov-bar"><i style="width:${pos != null ? pos : st === "open" ? 100 : 0}%"></i></i></button>
+      const p = pos != null ? Math.max(0, Math.min(100, Number(pos))) : st === "open" ? 100 : st === "closed" ? 0 : 50;
+      const anim = c.covers_design === "animated";
+      // Animiert: Fenster mit Rollo, der Panzer bedeckt (100 − Position) % – gleiche Zeilenhöhe wie die klassische Ansicht
+      const head = anim
+        ? `<button class="cov-win ${moving ? `mv ${st}` : ""}" data-more="${esc(eid)}" aria-label="${esc(name)}: ${esc(label)}">
+            <i class="cov-sky"></i><i class="cov-shut" style="height:${100 - p}%"><i class="cov-rail"></i></i><b class="cov-pct">${p}%</b></button>
+          <button class="cov-name" data-more="${esc(eid)}"><b>${esc(name)}</b><small>${esc(label)}</small></button>`
+        : `<button class="cov-name" data-more="${esc(eid)}"><b>${esc(name)}</b><small>${esc(label)}</small>
+          <i class="cov-bar"><i style="width:${p}%"></i></i></button>`;
+      return `<div class="cov ${anim ? "cov-anim" : ""}">
+        ${head}
         <div class="cov-btns">
           <button data-svc="cover.open_cover" data-eid="${esc(eid)}" aria-label="${T("Hoch")}">${icon("up")}</button>
           <button class="${moving ? "act" : ""}" data-svc="cover.stop_cover" data-eid="${esc(eid)}" aria-label="${T("Stopp")}">${icon("stop")}</button>
@@ -2181,7 +2475,7 @@ class SafeHomeCard extends HTMLElement {
     const editing = this._editing;
     const head = `
       <header class="cu-head">
-        <img class="logo" src="${LOGO_URL}" alt="Safe Home Logo">
+        <img class="logo" src="${this._logo()}" alt="Safe Home Logo">
         <div class="ttl"><h2>${esc(p.title)}</h2><span>${c.show_clock !== false ? `${this._greeting(now)} · ${now.toLocaleDateString(shLocale(), { weekday: "long", day: "numeric", month: "long" })}` : T("Alarmanlage")}</span></div>
         ${c.show_clock !== false ? `<div class="cu-time">${now.toLocaleTimeString(shLocale(), { hour: "2-digit", minute: "2-digit" })}</div>` : ""}
         ${this._zoneParts.zDots}<span class="pill">${esc(p.info.label)}</span>
@@ -2470,8 +2764,7 @@ class SafeHomeCard extends HTMLElement {
     root.querySelectorAll("[data-action]").forEach((b) =>
       b.addEventListener("click", () => {
         const act = b.dataset.action;
-        if (act === "silence") this._run("silence");
-        else this._request(act);
+        this._request(act);
       })
     );
     root.querySelectorAll("[data-svc]").forEach((b) =>
@@ -2522,6 +2815,7 @@ class SafeHomeCard extends HTMLElement {
       });
     }
     this._bindDrag();
+    this._bindSquare(root);
     const panic = root.querySelector("[data-hold]");
     if (panic) {
       panic.addEventListener("pointerdown", (e) => {
@@ -2543,6 +2837,117 @@ class SafeHomeTabletCard extends SafeHomeCard {
 class SafeHomeCustomCard extends SafeHomeCard {
   static defaultLayout = "custom";
 }
+class SafeHomeSquareCard extends SafeHomeCard {
+  static defaultLayout = "square";
+}
+
+/** Kleines, transparentes Badge: Logo, Status und optional die Teilbereiche – als Karte und als HA-Badge nutzbar. */
+class SafeHomeBadgeCard extends HTMLElement {
+  constructor() {
+    super();
+    this.attachShadow({ mode: "open" });
+    this._sig = "";
+  }
+
+  static getStubConfig(hass) {
+    const ent = Object.keys(hass?.states || {}).find(
+      (e) => e.startsWith("alarm_control_panel.") && hass.states[e]?.attributes?.integration === "safe_home" && !hass.states[e]?.attributes?.zone
+    );
+    return { entity: ent || "alarm_control_panel.safe_home", show_zones: true };
+  }
+
+  static getConfigForm() {
+    const labels = {
+      entity: "Alarmanlage",
+      show_zones: "Teilbereiche anzeigen (Punkte)",
+      zone_names: "Namen der Teilbereiche anzeigen",
+      show_name: "Namen der Alarmanlage anzeigen",
+      red_logo: "Rotes Logo (für helle Hintergründe)",
+    };
+    return {
+      schema: [
+        { name: "entity", required: true, selector: { entity: { filter: [{ domain: "alarm_control_panel", integration: "safe_home" }] } } },
+        { name: "show_zones", selector: { boolean: {} } },
+        { name: "zone_names", selector: { boolean: {} } },
+        { name: "show_name", selector: { boolean: {} } },
+        { name: "red_logo", selector: { boolean: {} } },
+      ],
+      computeLabel: (sch) => T(labels[sch.name] || sch.name),
+    };
+  }
+
+  setConfig(config) {
+    if (!config) throw new Error(T("Ungültige Konfiguration"));
+    this._config = { show_zones: true, zone_names: false, show_name: false, red_logo: false, ...config };
+    this._sig = "";
+    this._render();
+  }
+
+  set hass(hass) {
+    this._hass = hass;
+    this._render();
+  }
+
+  getCardSize() {
+    return 1;
+  }
+
+  getGridOptions() {
+    return { columns: 6, rows: 1, min_columns: 3, min_rows: 1 };
+  }
+
+  _render() {
+    if (!this._config || !this._hass) return;
+    shSetLang(this._hass);
+    const cfg = this._config;
+    const st = this._hass.states[cfg.entity];
+    const state = st ? st.state : "unavailable";
+    const a = st?.attributes || {};
+    const zones = cfg.show_zones && Array.isArray(a.zones) ? a.zones : [];
+    // Im Home-Assistant-Design mit hellem Theme ist das weiße Logo unsichtbar → rotes Logo
+    const redLogo = cfg.red_logo || (a.ui_theme === "ha" && this._hass.themes?.darkMode === false);
+    const sig = JSON.stringify([state, a.friendly_name, zones.map((z) => [z.name, z.state]), cfg, SH_LANG, redLogo]);
+    if (sig === this._sig) return;
+    this._sig = sig;
+    const info = STATE_INFO[state] || STATE_INFO.unavailable;
+    const tone = info.tone;
+    const zTone = (s) => ({ disarmed: "home", armed_away: "away", arming: "arming", pending: "pending", triggered: "alarm" })[s] || "off";
+    const zHtml = zones.length
+      ? `<span class="zs">${zones
+          .map((z) => `<span class="z" title="${esc(z.name)}"><i class="d t-${zTone(z.state)}"></i>${cfg.zone_names ? `<em>${esc(z.name)}</em>` : ""}</span>`)
+          .join("")}</span>`
+      : "";
+    this.shadowRoot.innerHTML = `<style>
+      :host{display:block; --b-home:#34d399; --b-away:#ffba5e; --b-night:#a78bfa; --b-arming:#60a5fa; --b-pending:#fbbf24; --b-alarm:#ef2945; --b-off:#94a3b8}
+      .bdg{all:unset; box-sizing:border-box; cursor:pointer; display:inline-flex; align-items:center; gap:8px; max-width:100%; min-height:36px; padding:4px 12px 4px 6px;
+        border-radius:999px; background:transparent; color:var(--primary-text-color,#e5e7eb); font-family:var(--ha-font-family-body,inherit); -webkit-tap-highlight-color:transparent}
+      .bdg:focus-visible{outline:2px solid var(--primary-color,#3b7bff); outline-offset:2px}
+      img{flex:none; width:26px; height:26px; filter:drop-shadow(0 1px 2px rgba(0,0,0,.35))}
+      .t{display:flex; flex-direction:column; min-width:0; line-height:1.15}
+      .t b{font-size:.92rem; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:var(--tone); filter:brightness(var(--b-bright,1)); text-shadow:0 1px 2px rgba(0,0,0,.28)}
+      .t small{font-size:.7rem; opacity:.75; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+      .tone-home{--tone:var(--b-home)} .tone-away{--tone:var(--b-away)} .tone-night{--tone:var(--b-night)} .tone-arming{--tone:var(--b-arming)}
+      .tone-pending{--tone:var(--b-pending)} .tone-alarm{--tone:var(--b-alarm)} .tone-off{--tone:var(--b-off)}
+      .tone-alarm b,.tone-pending b{animation:bp 1s ease-in-out infinite}
+      @keyframes bp{50%{opacity:.4}}
+      .zs{display:inline-flex; align-items:center; gap:6px; padding-left:8px; margin-left:2px; border-left:1px solid rgba(127,127,127,.35)}
+      .z{display:inline-flex; align-items:center; gap:4px; font-size:.72rem; white-space:nowrap}
+      .z em{font-style:normal; opacity:.85}
+      .d{width:8px; height:8px; border-radius:50%; background:var(--b-off)}
+      .d.t-home{background:var(--b-home)} .d.t-away{background:var(--b-away); box-shadow:0 0 6px var(--b-away)} .d.t-arming{background:var(--b-arming); animation:bp 1s infinite}
+      .d.t-pending{background:var(--b-pending); animation:bp .6s infinite} .d.t-alarm{background:var(--b-alarm); box-shadow:0 0 8px var(--b-alarm); animation:bp .5s infinite}
+    </style>
+    <button class="bdg tone-${tone}" aria-label="${esc(a.friendly_name || "Safe Home")}: ${esc(T(info.label))}">
+      <img src="${redLogo ? LOGO_COLOR_URL : LOGO_URL}" alt="">
+      <span class="t"><b>${esc(T(info.label))}</b>${cfg.show_name ? `<small>${esc(cfg.name || a.friendly_name || "Safe Home")}</small>` : ""}</span>
+      ${zHtml}
+    </button>`;
+    this.shadowRoot.querySelector(".bdg").addEventListener("click", () =>
+      this.dispatchEvent(new CustomEvent("hass-more-info", { detail: { entityId: cfg.entity }, bubbles: true, composed: true }))
+    );
+  }
+}
+class SafeHomeBadge extends SafeHomeBadgeCard {}
 
 class SafeHomeCardEditor extends HTMLElement {
   connectedCallback() {
@@ -2787,7 +3192,7 @@ class SafeHomeCardEditor extends HTMLElement {
   }
   _typeLayout() {
     const t = String(this._config?.type || "").replace("custom:", "");
-    return { "safe-home-compact-card": "compact", "safe-home-tablet-card": "tablet", "safe-home-custom-card": "custom" }[t] || "standard";
+    return { "safe-home-compact-card": "compact", "safe-home-tablet-card": "tablet", "safe-home-custom-card": "custom", "safe-home-square-card": "square" }[t] || "standard";
   }
   _render() {
     if (!this._hass || !this._config) return;
@@ -2887,6 +3292,7 @@ class SafeHomeCardEditor extends HTMLElement {
               { value: "compact", label: T("Kompakt") },
               { value: "tablet", label: T("Tablet") },
               { value: "custom", label: T("Custom") },
+              { value: "square", label: T("Quadrat") },
             ],
           },
         },
@@ -2894,6 +3300,25 @@ class SafeHomeCardEditor extends HTMLElement {
     ];
     if (layout === "compact") {
       this._form.schema = base;
+      return;
+    }
+    if (layout === "square") {
+      this._form.schema = [
+        ...base,
+        { type: "grid", name: "", schema: [b("square_status"), b("square_persons"), b("show_panic")] },
+        {
+          name: "square_view",
+          selector: {
+            select: {
+              mode: "box",
+              options: [
+                { value: "all", label: T("Alles auf einer Ansicht") },
+                { value: "swipe", label: T("Zum Wischen (links/rechts)") },
+              ],
+            },
+          },
+        },
+      ];
       return;
     }
     const alarmPart = [
@@ -2908,6 +3333,7 @@ class SafeHomeCardEditor extends HTMLElement {
           options: [
             { value: "inline", label: T("Direkt in der Karte") },
             { value: "dots", label: T("Als Punkte zum Ausklappen") },
+            { value: "hidden", label: T("Ausblenden") },
           ],
         },
       },
@@ -2972,6 +3398,18 @@ class SafeHomeCardEditor extends HTMLElement {
         b("show_covers"),
         ents("cover_entities", { domain: "cover" }),
         { type: "grid", name: "", schema: [b("covers_group_by_area"), b("show_cover_all")] },
+        {
+          name: "covers_design",
+          selector: {
+            select: {
+              mode: "box",
+              options: [
+                { value: "classic", label: T("Klassisch (Balken)") },
+                { value: "animated", label: T("Animiertes Rollo") },
+              ],
+            },
+          },
+        },
       ]),
       exp("Licht & Szenen", "mdi:lightbulb-group", [
         b("show_lights"),
@@ -3007,11 +3445,14 @@ class SafeHomeCardEditor extends HTMLElement {
     ["safe-home-compact-card", SafeHomeCompactCard],
     ["safe-home-tablet-card", SafeHomeTabletCard],
     ["safe-home-custom-card", SafeHomeCustomCard],
+    ["safe-home-square-card", SafeHomeSquareCard],
     ["safe-home-card-editor", SafeHomeCardEditor],
+    ["safe-home-badge-card", SafeHomeBadgeCard],
+    ["safe-home-badge", SafeHomeBadge],
   ];
 }
 
-const SH_TAGS = ["safe-home-card", "safe-home-compact-card", "safe-home-tablet-card", "safe-home-custom-card", "safe-home-card-editor"];
+const SH_TAGS = ["safe-home-card", "safe-home-compact-card", "safe-home-tablet-card", "safe-home-custom-card", "safe-home-card-editor", "safe-home-badge-card", "safe-home-badge", "safe-home-square-card"];
 let shRegistry = null;
 
 /** Im aktuell gültigen Verzeichnis anmelden – mehrfach aufrufbar, meldet nur Fehlendes an. */
@@ -3078,7 +3519,13 @@ const SH_CARDS = [
     "Vollbild für Smartphone oder Tablet mit Personen, Wetter, Raumklima, Rollos, Licht, Szenen, Kameras, Kraftstoffpreisen und eigenen Widgets – alles einzeln zuschaltbar."
   ),
 ];
+SH_CARDS.push(shCardEntry("safe-home-square-card", "Safe Home – Quadrat", "Quadratische Bedienkarte (1:1) für kleine Displays: Status, Zuhause, Unterwegs, Nacht, PIN-Eingabe und runde Panik-Taste."));
+SH_CARDS.push(shCardEntry("safe-home-badge-card", "Safe Home – Badge", "Kleines, transparentes Badge mit Logo, aktuellem Status und optional den Teilbereichen."));
 for (const c of SH_CARDS) if (!window.customCards.some((x) => x.type === c.type)) window.customCards.push(c);
+// Zusätzlich als echtes Home-Assistant-Badge (Badge-Leiste oben im Dashboard)
+window.customBadges = window.customBadges || [];
+if (!window.customBadges.some((x) => x.type === "safe-home-badge"))
+  window.customBadges.push({ ...shCardEntry("safe-home-badge", "Safe Home – Badge", "Kleines, transparentes Badge mit Logo, aktuellem Status und optional den Teilbereichen.") });
 
 console.info(
   `%c SAFE HOME %c ${SH_VERSION} (Build ${SH_BUILD}) – Mit ❤️ entwickelt in Deutschland von Digital7even `,

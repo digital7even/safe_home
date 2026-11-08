@@ -17,7 +17,6 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from . import SafeHomeConfigEntry
 from .const import (
-    CONF_CODE,
     CONF_CODE_ARM_REQUIRED,
     DOMAIN,
     MODE_AWAY,
@@ -36,6 +35,22 @@ async def async_setup_entry(
     async_add_entities([SafeHomeAlarmPanel(ctrl), *(SafeHomeZonePanel(ctrl, z) for z in ctrl.zones.values())])
 
 
+async def check_code_or_raise(controller, code: str | None, action: str, area: str = "main") -> str | None:
+    """PIN prüfen (mit Sperre nach zu vielen Fehlversuchen) – wirft bei Fehler, liefert den Inhaber."""
+    was_locked = controller.code_locked
+    ok, owner = await controller.check_user_code(code, action, area)
+    if ok:
+        return owner
+    if was_locked or controller.code_locked:
+        raise ServiceValidationError(
+            "PIN-Eingabe gesperrt",
+            translation_domain=DOMAIN,
+            translation_key="code_locked",
+            translation_placeholders={"minutes": str(controller.lock_minutes_left())},
+        )
+    raise ServiceValidationError("Falscher PIN", translation_domain=DOMAIN, translation_key="invalid_code")
+
+
 class SafeHomeAlarmPanel(SafeHomeEntity, AlarmControlPanelEntity):
     """Alarmanlage mit den Modi Zuhause, Unterwegs und Nacht."""
 
@@ -50,32 +65,24 @@ class SafeHomeAlarmPanel(SafeHomeEntity, AlarmControlPanelEntity):
     def __init__(self, controller) -> None:
         super().__init__(controller, "alarm")
 
-    # -- Code -----------------------------------------------------------
-    @property
-    def _code(self) -> str:
-        return str(self.controller.opt(CONF_CODE) or "")
+    # -- Code (persönliche PINs, Gast-PINs oder allgemeiner PIN) -------------
+    _pin_owner: str | None = None
 
     @property
     def code_format(self) -> CodeFormat | None:
-        code = self._code
-        if not code:
+        if not self.controller.code_set:
             return None
-        return CodeFormat.NUMBER if code.isdigit() else CodeFormat.TEXT
+        return CodeFormat.NUMBER if self.controller.code_numeric else CodeFormat.TEXT
 
     @property
     def code_arm_required(self) -> bool:
-        return bool(self._code) and bool(self.controller.opt(CONF_CODE_ARM_REQUIRED))
+        return self.controller.code_set and bool(self.controller.opt(CONF_CODE_ARM_REQUIRED))
 
     async def _check_code(self, code: str | None, action: str, required: bool) -> None:
-        if not required or not self._code:
+        self._pin_owner = None
+        if not required or not self.controller.code_set:
             return
-        if (code or "") != self._code:
-            await self.controller.async_wrong_code(action)
-            raise ServiceValidationError(
-                "Falscher PIN",
-                translation_domain=DOMAIN,
-                translation_key="invalid_code",
-            )
+        self._pin_owner = await check_code_or_raise(self.controller, code, action)
 
     # -- Zustand --------------------------------------------------------
     @property
@@ -102,8 +109,22 @@ class SafeHomeAlarmPanel(SafeHomeEntity, AlarmControlPanelEntity):
             "trigger_cause": c.trigger_cause,
             "triggered_sensors": list(c.trigger_sensors),
             "household_alerts": sorted(c.household_alerts),
-            "zones": [{**z.attributes(), "entity_id": c.zone_entity_id(zid)} for zid, z in c.zones.items()],
+            "zones": [
+                {
+                    **z.attributes(),
+                    "entity_id": c.zone_entity_id(zid),
+                    "code_required": c.code_required_for(zid),
+                    "code_arm_required": c.code_required_for(zid) and bool(c.opt(CONF_CODE_ARM_REQUIRED)),
+                    "code_numeric": c.code_numeric_for(zid),
+                }
+                for zid, z in c.zones.items()
+            ],
             "siren_active": c.siren_active,
+            "silence_code_required": c.silence_code_required,
+            "ui_theme": c.opt("ui_theme") or "safe_home",
+            "battery_low": [{"entity": e, "level": lvl} for e, lvl in sorted(c.battery_low.items())],
+            "week_active": c.week_active(),
+            "code_locked_until": c.code_locked_until.isoformat() if c.code_locked else None,
             "silent_alarm": bool(c.silent_reason) and c.state == "triggered",
             "silent_reason": c.silent_reason,
             "open_sensors": c.open_sensors(),
@@ -149,7 +170,9 @@ class SafeHomeAlarmPanel(SafeHomeEntity, AlarmControlPanelEntity):
         await self.controller.async_trigger(self.controller.t("Manuell ausgelöst"), source=await self._source(self.controller.t("Manuell")), panic=True)
 
     async def _source(self, fallback: str) -> str:
-        """Namen des auslösenden Benutzers ermitteln (falls vorhanden)."""
+        """Namen des auslösenden Benutzers ermitteln – bei PIN-Eingabe der Inhaber des PINs."""
+        if self._pin_owner:
+            return f"{fallback} ({self._pin_owner})"
         ctx = self._context
         if ctx and ctx.user_id:
             user = await self.hass.auth.async_get_user(ctx.user_id)
@@ -169,27 +192,23 @@ class SafeHomeZonePanel(SafeHomeEntity, AlarmControlPanelEntity):
         self._attr_name = zone.name
         self._attr_icon = "mdi:garage-lock"
 
-    @property
-    def _code(self) -> str:
-        return str(self.controller.opt(CONF_CODE) or "")
+    _pin_owner: str | None = None
 
     @property
     def code_format(self) -> CodeFormat | None:
-        code = self._code
-        if not code:
+        if not self.controller.code_required_for(self.zone.id):
             return None
-        return CodeFormat.NUMBER if code.isdigit() else CodeFormat.TEXT
+        return CodeFormat.NUMBER if self.controller.code_numeric_for(self.zone.id) else CodeFormat.TEXT
 
     @property
     def code_arm_required(self) -> bool:
-        return bool(self._code) and bool(self.controller.opt(CONF_CODE_ARM_REQUIRED))
+        return self.controller.code_required_for(self.zone.id) and bool(self.controller.opt(CONF_CODE_ARM_REQUIRED))
 
     async def _check_code(self, code: str | None, action: str, required: bool) -> None:
-        if not required or not self._code:
+        self._pin_owner = None
+        if not required or not self.controller.code_required_for(self.zone.id):
             return
-        if (code or "") != self._code:
-            await self.controller.async_wrong_code(f"{self.zone.name}: {action}")
-            raise ServiceValidationError("Falscher PIN", translation_domain=DOMAIN, translation_key="invalid_code")
+        self._pin_owner = await check_code_or_raise(self.controller, code, f"{self.zone.name}: {action}", self.zone.id)
 
     @property
     def alarm_state(self) -> AlarmControlPanelState:
@@ -212,6 +231,8 @@ class SafeHomeZonePanel(SafeHomeEntity, AlarmControlPanelEntity):
 
     async def _source(self) -> str:
         fallback = self.controller.t("Manuell")
+        if self._pin_owner:
+            return f"{fallback} ({self._pin_owner})"
         ctx = self._context
         if ctx and ctx.user_id:
             user = await self.hass.auth.async_get_user(ctx.user_id)

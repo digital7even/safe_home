@@ -36,6 +36,8 @@ def async_register(hass: HomeAssistant) -> None:
     websocket_api.async_register_command(hass, ws_get_config)
     websocket_api.async_register_command(hass, ws_save_config)
     websocket_api.async_register_command(hass, ws_test)
+    websocket_api.async_register_command(hass, ws_drill)
+    websocket_api.async_register_command(hass, ws_users)
     websocket_api.async_register_command(hass, ws_resource)
 
 
@@ -75,6 +77,11 @@ def ws_get_config(hass: HomeAssistant, connection: websocket_api.ActiveConnectio
     options = {**DEFAULTS, **entry.options}
     if "siren_duration" not in entry.options:
         options["siren_duration"] = options.get("trigger_time", DEFAULTS["siren_duration"])
+    if not options.get("pins") and options.get("code") and "pins" not in entry.options:
+        options["pins"] = [{"id": "legacy", "type": "guest", "user_id": "", "name": tr(hass, "Bisheriger PIN"), "code": options["code"], "start": None, "end": None, "enabled": True}]
+        options["code"] = ""
+    if "tts_enabled" not in entry.options:
+        options["tts_enabled"] = bool(options.get("tts_entity")) and bool(options.get("media_players"))
     controller = getattr(entry, "runtime_data", None)
     events = list(reversed(list(controller.events))) if controller else []
     connection.send_result(
@@ -90,8 +97,45 @@ def ws_get_config(hass: HomeAssistant, connection: websocket_api.ActiveConnectio
             ),
             "events": events,
             "version": VERSION,
+            "mobile_apps": _mobile_apps(hass),
+            "drill": controller.drill_info() if controller else {"active": False},
         },
     )
+
+
+@websocket_api.require_admin
+@websocket_api.websocket_command({vol.Required("type"): "safe_home/users"})
+@websocket_api.async_response
+async def ws_users(hass: HomeAssistant, connection: websocket_api.ActiveConnection, msg: dict[str, Any]) -> None:
+    """Home-Assistant-Benutzer für die PIN-Verwaltung (ohne Systembenutzer)."""
+    users = [
+        {"id": u.id, "name": u.name or "", "admin": bool(getattr(u, "is_admin", False)), "active": bool(u.is_active)}
+        for u in await hass.auth.async_get_users()
+        if not u.system_generated
+    ]
+    connection.send_result(msg["id"], {"users": sorted(users, key=lambda u: u["name"].lower())})
+
+
+def _mobile_apps(hass: HomeAssistant) -> list[dict[str, str]]:
+    """Smartphones mit Companion App: Benachrichtigungsdienst + Gerätename."""
+    from homeassistant.util import slugify  # noqa: PLC0415
+
+    services = set(hass.services.async_services_for_domain("notify"))
+    apps: dict[str, dict[str, str]] = {}
+    for entry in hass.config_entries.async_entries("mobile_app"):
+        name = entry.data.get("device_name") or entry.title or ""
+        svc = f"mobile_app_{slugify(name)}"
+        if svc in services:
+            apps[svc] = {
+                "service": svc,
+                "name": name,
+                "model": " ".join(x for x in (entry.data.get("manufacturer"), entry.data.get("model")) if x),
+                "os": " ".join(x for x in (entry.data.get("os_name"), entry.data.get("os_version")) if x),
+            }
+    for svc in services:
+        if svc.startswith("mobile_app_") and svc not in apps:
+            apps[svc] = {"service": svc, "name": svc.removeprefix("mobile_app_").replace("_", " ").title(), "model": "", "os": ""}
+    return sorted(apps.values(), key=lambda a: a["name"].lower())
 
 
 @websocket_api.require_admin
@@ -137,6 +181,32 @@ async def ws_test(hass: HomeAssistant, connection: websocket_api.ActiveConnectio
         return
     message = await controller.async_test(msg["kind"])
     connection.send_result(msg["id"], {"message": message})
+
+
+@websocket_api.require_admin
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): "safe_home/drill",
+        vol.Required("entry_id"): str,
+        vol.Optional("entity_id"): str,
+        vol.Optional("reset", default=False): bool,
+    }
+)
+@websocket_api.async_response
+async def ws_drill(hass: HomeAssistant, connection: websocket_api.ActiveConnection, msg: dict[str, Any]) -> None:
+    """Alarm von einem Sensor auslösen bzw. zurückstellen."""
+    entry = _entry(hass, msg["entry_id"])
+    controller = getattr(entry, "runtime_data", None) if entry else None
+    if controller is None or entry.state is not ConfigEntryState.LOADED:
+        connection.send_error(msg["id"], "not_loaded", tr(hass, "Instanz ist nicht geladen"))
+        return
+    if msg["reset"]:
+        message = await controller.async_drill_reset()
+    elif msg.get("entity_id"):
+        message = await controller.async_drill(msg["entity_id"])
+    else:
+        message = ""
+    connection.send_result(msg["id"], {"message": message, "drill": controller.drill_info()})
 
 
 @websocket_api.require_admin
