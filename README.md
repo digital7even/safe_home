@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://github.com/digital7even/safe_home/blob/main/docs/logo.png" width="120" alt="Safe Home logo">
+  <img src="https://github.com/digital7even/safe_home/blob/main/https://raw.githubusercontent.com/digital7even/safe_home/main/docs/logo.png" width="120" alt="Safe Home logo">
 </p>
 
 <h1 align="center">Safe Home</h1>
@@ -13,7 +13,7 @@
 
 <p align="center"><b>English</b> · <a href="README.de.md">Deutsch</a></p>
 
-<p align="center"><img src="docs/preview-custom-tablet.jpg" alt="Safe Home custom card" width="100%"></p>
+<p align="center"><img src="https://raw.githubusercontent.com/digital7even/safe_home/main/docs/preview-custom-tablet.jpg" alt="Safe Home custom card" width="100%"></p>
 
 > **Languages:** Safe Home is fully available in **English and German** – setup dialog, dashboard cards, card editor, sidebar page, log entries, notifications and voice announcements. The cards and the sidebar page follow the language of your Home Assistant user profile; log entries, notifications and announcements follow the system language (*Settings → System → General*). Every language other than German uses English.
 
@@ -82,7 +82,7 @@ After installation, **Safe Home** appears in the sidebar (administrators only). 
 
 | Overview | Sensors | Smartphone |
 |---|---|---|
-| <img src="docs/panel-overview.jpg" width="320"> | <img src="docs/panel-sensors.jpg" width="320"> | <img src="docs/panel-mobile.jpg" width="150"> |
+| <img src="https://raw.githubusercontent.com/digital7even/safe_home/main/docs/panel-overview.jpg" width="320"> | <img src="https://raw.githubusercontent.com/digital7even/safe_home/main/docs/panel-sensors.jpg" width="320"> | <img src="https://raw.githubusercontent.com/digital7even/safe_home/main/docs/panel-mobile.jpg" width="150"> |
 
 | Tab | Content |
 |---|---|
@@ -107,7 +107,7 @@ Under **Info → Android widget**, Safe Home generates a ready-made **template w
 2. Long-press the home screen → Widgets → Home Assistant → drag **Template** onto the home screen.
 3. Paste the template and save.
 
-The preview on the Safe Home page is rendered by your Home Assistant. The template widget can only show text with simple formatting; tapping it refreshes it. To switch modes, add button widgets with `alarm_control_panel.alarm_arm_away`, `alarm_arm_night` and `alarm_disarm`. Details: [Companion App Android widgets](https://companion.home-assistant.io/docs/integrations/android-widgets).
+The preview on the Safe Home page is rendered by your Home Assistant. The template widget can only show text with simple formatting; tapping it refreshes it. To switch modes, add button widgets with `alarm_control_panel.alarm_arm_away`, `alarm_arm_night` and `alarm_disarm`. Details: [Companion App Android widgets](https://companion.home-assistant.io/https://raw.githubusercontent.com/digital7even/safe_home/main/docs/integrations/android-widgets).
 
 ## Setup
 
@@ -299,7 +299,7 @@ Please check immediately!
 - There are a few seconds between two messages so TextMeBot does not drop any. Send errors are written to the log and never interfere with the alarm.
 - You get the API key at [textmebot.com](https://textmebot.com/send-text-messages/). Messages are sent from the WhatsApp account linked to the key.
 
-**Prefer an automation?** An automation for Safe Home (including the `rest_command`) is available in [`docs/automation-whatsapp.yaml`](docs/automation-whatsapp.yaml). It uses the new attribute `triggered_sensors` (the sensors that actually triggered) and checks "not disarmed" after 5 minutes, because Safe Home re-arms itself after the alarm duration. Use only one of the two variants, otherwise messages arrive twice.
+**Prefer an automation?** An automation for Safe Home (including the `rest_command`) is available in [`https://raw.githubusercontent.com/digital7even/safe_home/main/docs/automation-whatsapp.yaml`](https://raw.githubusercontent.com/digital7even/safe_home/main/docs/automation-whatsapp.yaml). It uses the new attribute `triggered_sensors` (the sensors that actually triggered) and checks "not disarmed" after 5 minutes, because Safe Home re-arms itself after the alarm duration. Use only one of the two variants, otherwise messages arrive twice.
 
 ---
 
@@ -309,7 +309,7 @@ There are four variants. All of them appear in the dashboard under **Add card** 
 
 | Standard | Compact | Tablet |
 |---|---|---|
-| <img src="docs/preview-standard.jpg" width="260"> | <img src="docs/preview-compact.jpg" width="260"> | <img src="docs/preview-tablet.jpg" width="260"> |
+| <img src="https://raw.githubusercontent.com/digital7even/safe_home/main/docs/preview-standard.jpg" width="260"> | <img src="https://raw.githubusercontent.com/digital7even/safe_home/main/docs/preview-compact.jpg" width="260"> | <img src="https://raw.githubusercontent.com/digital7even/safe_home/main/docs/preview-tablet.jpg" width="260"> |
 | All information stacked | Status and modes only | All information, wide and responsive |
 
 ### Standard
@@ -371,7 +371,7 @@ The most extensive card: everything from the standard layout plus additional mod
 
 | Smartphone | Tablet |
 |---|---|
-| <img src="docs/preview-custom-phone.jpg" width="240"> | <img src="docs/preview-custom-tablet.jpg" width="520"> |
+| <img src="https://raw.githubusercontent.com/digital7even/safe_home/main/docs/preview-custom-phone.jpg" width="240"> | <img src="https://raw.githubusercontent.com/digital7even/safe_home/main/docs/preview-custom-tablet.jpg" width="520"> |
 
 | Module | What it shows |
 |---|---|
