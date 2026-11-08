@@ -66,7 +66,7 @@
 ## Installation
 
 <p>
-  <a href="https://my.home-assistant.io/redirect/hacs_repository/?owner=digital7eve&amp;repository=safe_home&amp;category=integration"><img src="https://my.home-assistant.io/badges/hacs_repository.svg" alt="Repository in Home Assistant öffnen" height="32"></a>
+  <a href="https://my.home-assistant.io/redirect/hacs_repository/?owner=digital7even&amp;repository=safe_home&amp;category=integration"><img src="https://my.home-assistant.io/badges/hacs_repository.svg" alt="Repository in Home Assistant öffnen" height="32"></a>
 </p>
 
 ### Via HACS (recommended)
