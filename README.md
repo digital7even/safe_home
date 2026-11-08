@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/logo.png" width="120" alt="Safe Home logo">
+  <img src="https://github.com/digital7even/safe_home/blob/main/docs/logo.png" width="120" alt="Safe Home logo">
 </p>
 
 <h1 align="center">Safe Home</h1>
