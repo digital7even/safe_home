@@ -3,7 +3,7 @@
  * Mit ❤️ entwickelt in Deutschland von Digital7even
  * https://github.com/digital7even
  */
-const PANEL_VERSION = "1.20.0";
+const PANEL_VERSION = "1.23.0";
 const P_LOGO = new URL("./logo-white.png", import.meta.url).href;
 const P_LOGO_COLOR = new URL("./logo.png", import.meta.url).href;
 
@@ -26,6 +26,163 @@ function pSetLang(hass) {
   return true;
 }
 const PANEL_EN = {
+  "Den Wortlaut der WhatsApp-Nachrichten legst du unter „Texte & Vorlagen“ fest.": "You set the wording of the WhatsApp messages under \"Texts & templates\".",
+  "Tür geöffnet: {name}": "Door opened: {name}",
+  "Garage": "Garage",
+  "Terrassentür": "Patio door",
+  "Ausschalten": "Disarm",
+  "⚠️ Sensoren überbrückt": "⚠️ Sensors bypassed",
+  "Beim Aktivieren waren offen: Terrassentür.": "When activating, these were open: Patio door.",
+  "Aus: Safe Home verwendet die eingebauten Texte und die Namen aus Home Assistant.": "Off: Safe Home uses the built-in texts and the names from Home Assistant.",
+  "Bitte Home Assistant neu starten, damit die Vorlagen geladen werden.": "Please restart Home Assistant so the templates are loaded.",
+  "Leere oder unveränderte Texte nutzen den Standard. Platzhalter wie {sensor} werden beim Senden ersetzt – antippen fügt sie ein. Eigene Sensornamen trägst du unter „Bereiche & Sensoren“ und „Haushalt“ direkt beim Sensor ein.": "Empty or unchanged texts use the default. Placeholders like {sensor} are replaced when sending – tap one to insert it. You enter custom sensor names directly at the sensor under \"Areas & sensors\" and \"Household\".",
+  "{n} geändert": "{n} changed",
+  "Standard": "Default",
+  "Alle Texte auf Standard": "Reset all texts to default",
+  "Texte & Vorlagen": "Texts & templates",
+  "Wortlaut von Push, WhatsApp und Ansagen sowie eigene Sensornamen.": "Wording of push, WhatsApp and announcements, plus custom sensor names.",
+  "Eigene Vorlagen festlegen": "Use custom templates",
+  "Eingebaute Texte": "Built-in texts",
+  "Eigene Vorlagen": "Custom templates",
+  "{n} Texte geändert": "{n} texts changed",
+  "alle Texte Standard": "all texts default",
+  "{n} eigene Sensornamen": "{n} custom sensor names",
+  "Alle Texte stehen wieder auf Standard": "All texts are back to default",
+  "Eigener Name (optional)": "Custom name (optional)",
+  "Eigener Name für {name}": "Custom name for {name}",
+  "Alarm – Titel": "Alarm – title",
+  "Alarm – Text": "Alarm – text",
+  "Alarm – WhatsApp-Nachricht": "Alarm – WhatsApp message",
+  "Alarm – Durchsage": "Alarm – announcement",
+  "Alarm im Teilbereich – Titel": "Alarm in a partition – title",
+  "Alarm im Teilbereich – Text": "Alarm in a partition – text",
+  "Erinnerung, wenn der Alarm nicht zurückgestellt wurde": "Reminder if the alarm was not reset",
+  "Erste Ansage": "First announcement",
+  "Wiederholung": "Repeat",
+  "Teilbereich – erste Ansage": "Partition – first announcement",
+  "Teilbereich – Wiederholung": "Partition – repeat",
+  "Scharf – Titel": "Armed – title",
+  "Scharf – Text": "Armed – text",
+  "Unscharf – Titel": "Disarmed – title",
+  "Unscharf – Text": "Disarmed – text",
+  "Entwarnung per WhatsApp": "All clear via WhatsApp",
+  "Sensoren überbrückt – Titel": "Sensors bypassed – title",
+  "Sensoren überbrückt – Text": "Sensors bypassed – text",
+  "Scharfschalten blockiert – Titel": "Arming blocked – title",
+  "Scharfschalten blockiert – Text": "Arming blocked – text",
+  "Sensor nicht erreichbar – Titel": "Sensor unavailable – title",
+  "Sensor nicht erreichbar – Text": "Sensor unavailable – text",
+  "Falscher PIN – Titel": "Wrong PIN – title",
+  "Falscher PIN – Text": "Wrong PIN – text",
+  "PIN-Sperre – Titel": "PIN lock – title",
+  "PIN-Sperre – Text": "PIN lock – text",
+  "Batterie schwach – Titel": "Battery low – title",
+  "Batterie schwach – Text": "Battery low – text",
+  "Weitere Meldungen per WhatsApp": "Other messages via WhatsApp",
+  "Meldung – Titel": "Alert – title",
+  "Meldung – Text": "Alert – text",
+  "Entwarnung – Titel": "All clear – title",
+  "Entwarnung – Text": "All clear – text",
+  "Durchsage bei Wasser": "Announcement for water",
+  "Durchsage bei anderen Meldern": "Announcement for other sensors",
+  "Auslöser: Tür": "Cause: door",
+  "Auslöser: Fenster": "Cause: window",
+  "Auslöser: Bewegung": "Cause: motion",
+  "Auslöser: Präsenz": "Cause: presence",
+  "Auslöser: Wasser": "Cause: water",
+  "Auslöser: Kamera": "Cause: camera",
+  "Durchsage: Tür": "Announcement: door",
+  "Durchsage: Fenster": "Announcement: window",
+  "Durchsage: Bewegung": "Announcement: motion",
+  "Durchsage: Präsenz": "Announcement: presence",
+  "Durchsage: Wasser": "Announcement: water",
+  "Durchsage: Kamera": "Announcement: camera",
+  "Uhrzeit": "Time",
+  "Datum": "Date",
+  "Name des Sensors (eigener Name, falls festgelegt)": "Sensor name (custom name if set)",
+  "Auslöser-Text, z. B. „Tür geöffnet: Haustür“": "Cause text, e.g. \"Door opened: Front door\"",
+  "Modus, z. B. Unterwegs": "Mode, e.g. Away",
+  "Teilbereich": "Partition",
+  "Einleitung, z. B. „Achtung, möglicher Einbruch!“": "Opening, e.g. \"Attention, possible break-in!\"",
+  "Satz zum Melder, z. B. „Geöffnete Tür erkannt: Haustür.“": "Sentence about the sensor, e.g. \"Open door detected: Front door.\"",
+  "Minuten seit dem Alarm": "Minutes since the alarm",
+  "Sekunden bis zum Alarm": "Seconds until the alarm",
+  "Verbleibende Sekunden bzw. Anzahl": "Remaining seconds or number",
+  "Symbol des Modus": "Mode icon",
+  "Wer oder was geschaltet hat": "Who or what switched",
+  "Anzahl aktiver Sensoren": "Number of active sensors",
+  "Namen der offenen Sensoren": "Names of the open sensors",
+  "Aktion, bei der der PIN falsch war": "Action with the wrong PIN",
+  "Minuten der Sperre": "Lock minutes",
+  "Ladestand in %": "Charge level in %",
+  "Zustand, z. B. Feucht": "State, e.g. Wet",
+  "Titel der Push-Meldung": "Title of the push message",
+  "Text der Push-Meldung": "Text of the push message",
+  "Scharf & unscharf": "Armed & disarmed",
+  "Hinweise": "Notices",
+  "Texte je Melder-Art": "Texts per sensor type",
+  "Push · Titel": "Push · title",
+  "Push · Text": "Push · text",
+  "Auslöser": "Cause",
+  "sofort überwacht": "monitored at once",
+  "Info & Darstellung": "Info & display",
+  "Erweitert": "Advanced",
+  "Funktionstest": "Function test",
+  "Benachrichtigung, Sirene, Licht, Ansage und WhatsApp prüfen – oder einen Alarm von einem Sensor auslösen.": "Check notification, siren, light, announcement and WhatsApp – or trigger an alarm from a sensor.",
+  "Hauptbereich + {names}": "Main area + {names}",
+  "Nur Hauptbereich – keine Teilbereiche": "Main area only – no partitions",
+  "Noch keine Sensoren": "No sensors yet",
+  "{n} Sensoren · {a} Unterwegs · {b} Nacht · {c} verzögert": "{n} sensors · {a} Away · {b} Night · {c} delayed",
+  "Offene Sensoren verhindern Scharfschalten": "Open sensors block arming",
+  "Offene Sensoren werden überbrückt": "Open sensors are bypassed",
+  "Batterien: aus": "Batteries: off",
+  "Batterien: Warnung ab {n} %": "Batteries: warning at {n} %",
+  "Verlassen": "Leaving",
+  "Heimkommen": "Coming home",
+  "Unterwegs: {a} / {b} · Nacht: {c} / {e} (Verlassen / Heimkommen)": "Away: {a} / {b} · Night: {c} / {e} (leaving / coming home)",
+  "Der Wochenplan ist nur ohne „Anwesenheit“ nutzbar – schalte „Anwesenheit“ aus, um ihn zu verwenden.": "The weekly schedule only works without \"Presence detection\" – switch \"Presence detection\" off to use it.",
+  "Zeitfenster": "Time window",
+  "Keine Sirene ausgewählt": "No siren selected",
+  "1 Sirene": "1 siren",
+  "{n} Sirenen": "{n} sirens",
+  "Alarmlicht": "Alarm light",
+  "Alarm {t}": "Alarm {t}",
+  "Alarm bis Aus": "Alarm until switched off",
+  "Kein Smartphone ausgewählt": "No smartphone selected",
+  "1 Smartphone": "1 smartphone",
+  "{n} Smartphones": "{n} smartphones",
+  "kritisch": "critical",
+  "auch Schaltungen": "also mode changes",
+  "1 Lautsprecher": "1 speaker",
+  "{n} Lautsprecher": "{n} speakers",
+  "Alexa": "Alexa",
+  "An · {n} von {m} Empfängern aktiv": "On · {n} of {m} recipients active",
+  "1 Person": "1 person",
+  "{n} Personen": "{n} people",
+  "Pausiert – „Anwesenheit“ ist eingeschaltet": "Paused – \"Presence detection\" is on",
+  "An · {n} Zeitfenster pro Woche": "On · {n} time slots per week",
+  "Pausiert – der Wochenplan ist aktiv": "Paused – the weekly schedule is active",
+  "An · {a}–{b} Uhr": "On · {a}–{b}",
+  "Wie arbeitet die Automatik?": "How does the automation work?",
+  "Zusammenfassung deiner Einstellungen": "Summary of your settings",
+  "Push": "Push",
+  "An · meldet per {v}": "On · reports via {v}",
+  "An · kein Meldeweg gewählt": "On · no channel selected",
+  "Aus – kein PIN nötig": "Off – no PIN needed",
+  "An · Sperre nach {n} falschen PINs": "On · lock after {n} wrong PINs",
+  "{u} Benutzer-PINs · {g} Gast-PINs": "{u} user PINs · {g} guest PINs",
+  "Noch kein PIN": "No PIN yet",
+  "Weniger anzeigen": "Show less",
+  "Alle {n} anzeigen": "Show all {n}",
+  "Die letzten Ereignisse dieser Instanz.": "The latest events of this instance.",
+  "Dashboard-Ressource eingetragen": "Dashboard resource registered",
+  "Die Kartendatei ist eingetragen und in diesem Browser geladen – die Karten erscheinen zuverlässig.": "The card file is registered and loaded in this browser – the cards appear reliably.",
+  "Template-Widget im Stil der Kompakt-Karte für den Android-Startbildschirm": "Template widget in the style of the compact card for the Android home screen",
+  "Aus: Die Abschnitte in den Reitern sind zugeklappt und zeigen eine Kurzfassung – ein Tipp auf die Überschrift öffnet sie.": "Off: the sections in the tabs are collapsed and show a short summary – tap the heading to open them.",
+  "Deaktivierte Unteroptionen ausblenden": "Hide sub-options of disabled features",
+  "Ist eine Funktion ausgeschaltet (z. B. WhatsApp, Batterie-Überwachung oder das Zeitfenster der Sirene), werden ihre Einstellungen ausgeblendet, bis du sie einschaltest. Aus: Alle Einstellungen sind immer sichtbar.": "When a feature is switched off (e.g. WhatsApp, battery monitoring or the siren time window), its settings are hidden until you switch it on. Off: all settings are always visible.",
+  "Deaktivierte Unteroptionen werden ausgeblendet": "Sub-options of disabled features are hidden",
+  "Alle Einstellungen werden angezeigt": "All settings are shown",
   "Tipp: Unter Profil → Design kannst du außerdem das Design „Safe Home“ (hell und dunkel) für ganz Home Assistant auswählen.": "Tip: under Profile → Theme you can also select the \"Safe Home\" theme (light and dark) for all of Home Assistant.",
   "Home-Assistant-Design verwenden": "Use Home Assistant theme",
   "(Beta)": "(Beta)",
@@ -695,9 +852,84 @@ const TABS = [
   { id: "automation", label: "Automatik", icon: "pin" },
   { id: "household", label: "Haushalt", icon: "drop" },
   { id: "security", label: "Sicherheit", icon: "lock" },
-  { id: "log", label: "Protokoll", icon: "list" },
-  { id: "info", label: "Info", icon: "info" },
 ];
+// Nicht in der Reiterleiste: „Info“ öffnet sich über das ⓘ oben rechts, „Protokoll“ und „Testen“ stehen in der Übersicht
+const PAGES = [...TABS.map((t) => t.id), "info"];
+
+// Bezeichnung der Vorlagen in der Einstellungsseite (Schlüssel siehe templates.py)
+const TPL_LABELS = {
+  push_alarm_title: "Alarm – Titel",
+  push_alarm: "Alarm – Text",
+  wa_alarm: "Alarm – WhatsApp-Nachricht",
+  tts_alarm: "Alarm – Durchsage",
+  push_zone_alarm_title: "Alarm im Teilbereich – Titel",
+  push_zone_alarm: "Alarm im Teilbereich – Text",
+  wa_reminder: "Erinnerung, wenn der Alarm nicht zurückgestellt wurde",
+  tts_entry_first: "Erste Ansage",
+  tts_entry_repeat: "Wiederholung",
+  tts_zone_entry_first: "Teilbereich – erste Ansage",
+  tts_zone_entry_repeat: "Teilbereich – Wiederholung",
+  push_armed_title: "Scharf – Titel",
+  push_armed: "Scharf – Text",
+  push_disarmed_title: "Unscharf – Titel",
+  push_disarmed: "Unscharf – Text",
+  wa_all_clear: "Entwarnung per WhatsApp",
+  push_bypass_title: "Sensoren überbrückt – Titel",
+  push_bypass: "Sensoren überbrückt – Text",
+  push_blocked_title: "Scharfschalten blockiert – Titel",
+  push_blocked: "Scharfschalten blockiert – Text",
+  push_tamper_title: "Sensor nicht erreichbar – Titel",
+  push_tamper: "Sensor nicht erreichbar – Text",
+  push_wrong_code_title: "Falscher PIN – Titel",
+  push_wrong_code: "Falscher PIN – Text",
+  push_lockout_title: "PIN-Sperre – Titel",
+  push_lockout: "PIN-Sperre – Text",
+  push_battery_title: "Batterie schwach – Titel",
+  push_battery: "Batterie schwach – Text",
+  wa_other: "Weitere Meldungen per WhatsApp",
+  push_household_title: "Meldung – Titel",
+  push_household: "Meldung – Text",
+  push_household_ok_title: "Entwarnung – Titel",
+  push_household_ok: "Entwarnung – Text",
+  tts_household_water: "Durchsage bei Wasser",
+  tts_household: "Durchsage bei anderen Meldern",
+  cause_door: "Auslöser: Tür",
+  cause_window: "Auslöser: Fenster",
+  cause_motion: "Auslöser: Bewegung",
+  cause_presence: "Auslöser: Präsenz",
+  cause_water: "Auslöser: Wasser",
+  cause_camera: "Auslöser: Kamera",
+  speech_door: "Durchsage: Tür",
+  speech_window: "Durchsage: Fenster",
+  speech_motion: "Durchsage: Bewegung",
+  speech_presence: "Durchsage: Präsenz",
+  speech_water: "Durchsage: Wasser",
+  speech_camera: "Durchsage: Kamera",
+};
+const PH_HELP = {
+  name: "Name der Alarmanlage",
+  time: "Uhrzeit",
+  date: "Datum",
+  sensor: "Name des Sensors (eigener Name, falls festgelegt)",
+  cause: "Auslöser-Text, z. B. „Tür geöffnet: Haustür“",
+  mode: "Modus, z. B. Unterwegs",
+  zone: "Teilbereich",
+  headline: "Einleitung, z. B. „Achtung, möglicher Einbruch!“",
+  detail: "Satz zum Melder, z. B. „Geöffnete Tür erkannt: Haustür.“",
+  minutes: "Minuten seit dem Alarm",
+  delay: "Sekunden bis zum Alarm",
+  n: "Verbleibende Sekunden bzw. Anzahl",
+  icon: "Symbol des Modus",
+  source: "Wer oder was geschaltet hat",
+  count: "Anzahl aktiver Sensoren",
+  names: "Namen der offenen Sensoren",
+  action: "Aktion, bei der der PIN falsch war",
+  m: "Minuten der Sperre",
+  level: "Ladestand in %",
+  state: "Zustand, z. B. Feucht",
+  title: "Titel der Push-Meldung",
+  message: "Text der Push-Meldung",
+};
 
 const SENSOR_TYPES = [
   ["door", "Türkontakt", "door"],
@@ -897,7 +1129,9 @@ class SafeHomePanel extends HTMLElement {
   _readTab() {
     try {
       const t = localStorage.getItem("safe_home_panel_tab") || "overview";
-      return t === "delays" ? "sensors" : t; // Reiter „Kernzeiten“ gibt es nicht mehr
+      if (t === "delays") return "sensors"; // Reiter „Kernzeiten“ gibt es nicht mehr
+      if (t === "log") return "overview"; // Protokoll steht jetzt in der Übersicht
+      return t;
     } catch (e) {
       return "overview";
     }
@@ -1012,6 +1246,9 @@ class SafeHomePanel extends HTMLElement {
   }
 
   _set(key, value) {
+    queueMicrotask(() => {
+      if (this._data && this._lastVis !== undefined && this._visSig() !== this._lastVis) this._render();
+    });
     if (key === "name") this._title = value || "";
     else this._draft[key] = value;
     if (key === "tts_enabled" && value)
@@ -1062,11 +1299,19 @@ class SafeHomePanel extends HTMLElement {
         <div class="ttl"><h1>Safe Home</h1><span>${pesc(this._data?.title || PT("Alarmanlage"))} · ${PT("Einstellungen")}</span></div>
         ${select}
         ${info ? `<span class="pill" style="--tone:${info.c}">${pesc(info.l)}</span>` : ""}
+        ${this._data ? `<button class="iconbtn info-btn ${this._tab === "info" ? "active" : ""}" data-info-btn aria-label="${PT("Info & Darstellung")}" title="${PT("Info & Darstellung")}">${pi("info")}</button>` : ""}
       </header>`;
   }
 
   _bindHeader() {
     const root = this.shadowRoot;
+    root.querySelector("[data-info-btn]")?.addEventListener("click", () => {
+      this._tab = this._tab === "info" ? this._lastTab || "overview" : "info";
+      if (this._tab !== "info") this._lastTab = undefined;
+      this._store("safe_home_panel_tab", this._tab);
+      this._render();
+      this.shadowRoot.querySelector(".content")?.scrollTo?.(0, 0);
+    });
     root.querySelector(".menu")?.addEventListener("click", () =>
       this.dispatchEvent(new Event("hass-toggle-menu", { bubbles: true, composed: true }))
     );
@@ -1091,7 +1336,10 @@ class SafeHomePanel extends HTMLElement {
 
   _render() {
     if (!this._data) return;
-    const tab = TABS.find((t) => t.id === this._tab) ? this._tab : "overview";
+    if (this._tab === "log") this._tab = "overview";
+    const tab = PAGES.includes(this._tab) ? this._tab : "overview";
+    this._sumFns = {};
+    this._lastVis = this._visSig();
     const nav = TABS.map(
       (t) => `<button class="tab ${t.id === tab ? "active" : ""}" data-tab="${t.id}">${pi(t.icon)}<span>${PT(t.label)}</span>${
         this._tabErrors(t.id) ? '<i class="dot-err"></i>' : ""
@@ -1115,6 +1363,7 @@ class SafeHomePanel extends HTMLElement {
       b.addEventListener("click", () => {
         if (!b.classList.contains("tab")) return;
         this._tab = b.dataset.tab;
+        this._lastTab = this._tab;
         this._store("safe_home_panel_tab", this._tab);
         this._render();
         this.shadowRoot.querySelector(".content")?.scrollTo?.(0, 0);
@@ -1189,7 +1438,7 @@ class SafeHomePanel extends HTMLElement {
   }
 
   _tabHtml(tab) {
-    this._collapsible = !["overview", "log", "info"].includes(tab);
+    this._collapsible = !["overview", "info"].includes(tab);
     this._secN = 0;
     switch (tab) {
       case "overview": return this._overviewHtml();
@@ -1198,18 +1447,81 @@ class SafeHomePanel extends HTMLElement {
       case "automation": return this._automationHtml();
       case "household": return this._householdHtml();
       case "security": return this._securityHtml();
-      case "log": return this._logHtml();
       default: return this._infoHtml();
     }
   }
 
-  _section(title, sub, body, cls = "") {
-    if (!this._collapsible) return `<section class="box ${cls}"><div class="box-h"><h2>${title}</h2>${sub ? `<p>${sub}</p>` : ""}</div>${body}</section>`;
-    const id = `${this._tab}:${this._secN++}`;
-    const open = this._secIsOpen(id);
-    return `<section class="box coll ${open ? "open" : ""} ${cls}" data-sec="${id}">
-      <button class="box-h box-tg" type="button" aria-expanded="${open}"><span class="box-tt"><h2>${title}</h2>${sub ? `<p>${sub}</p>` : ""}</span>${pi("chev", "box-chev")}</button>
+  /**
+   * Abschnitt. opt.id = stabile ID (für den gemerkten Auf-/Zu-Zustand), opt.sum = Funktion für die Kurzfassung,
+   * die im zugeklappten Zustand statt der Beschreibung steht, opt.coll = einklappbar erzwingen.
+   */
+  _section(title, sub, body, cls = "", opt = {}) {
+    const coll = opt.coll ?? this._collapsible;
+    if (!coll) return `<section class="box ${cls}" ${opt.anchor ? `id="${opt.anchor}"` : ""}><div class="box-h"><h2>${title}</h2>${sub ? `<p>${sub}</p>` : ""}</div>${body}</section>`;
+    const id = `${this._tab}:${opt.id || this._secN}`;
+    this._secN++;
+    const open = opt.open ?? this._secIsOpen(id);
+    let sum = "";
+    if (typeof opt.sum === "function") {
+      (this._sumFns || (this._sumFns = {}))[id] = opt.sum;
+      try {
+        sum = opt.sum() || "";
+      } catch (e) {
+        sum = "";
+      }
+    }
+    return `<section class="box coll ${open ? "open" : ""} ${sum ? "has-sum" : ""} ${cls}" data-sec="${id}">
+      <button class="box-h box-tg" type="button" aria-expanded="${open}"><span class="box-tt"><h2>${title}</h2>${sub ? `<p class="box-desc">${sub}</p>` : ""}${sum ? `<p class="box-sum">${pesc(sum)}</p>` : ""}</span>${pi("chev", "box-chev")}</button>
       <div class="box-b">${body}</div></section>`;
+  }
+
+  /** „Erweitert“-Bereich innerhalb eines Abschnitts. keys = Felder darin (bei Fehlern automatisch offen). */
+  _adv(id, inner, keys = []) {
+    if (!inner || !String(inner).trim()) return "";
+    const key = `${this._tab}:${id}`;
+    let open = false;
+    try {
+      open = !!JSON.parse(localStorage.getItem("safe_home_adv") || "{}")[key];
+    } catch (e) {
+      /* ignore */
+    }
+    if (keys.some((k) => this._errors?.[k])) open = true;
+    return `<details class="adv" data-adv="${pesc(key)}" ${open ? "open" : ""}><summary>${pi("chev", "adv-chev")}<span>${PT("Erweitert")}</span></summary><div class="adv-b">${inner}</div></details>`;
+  }
+
+  _bindAdv(root) {
+    root.querySelectorAll("details.adv").forEach((d) =>
+      d.addEventListener("toggle", () => {
+        let m = {};
+        try {
+          m = JSON.parse(localStorage.getItem("safe_home_adv") || "{}") || {};
+        } catch (e) {
+          /* ignore */
+        }
+        m[d.dataset.adv] = d.open;
+        this._store("safe_home_adv", JSON.stringify(m));
+      })
+    );
+  }
+
+  /** Deaktivierte Unteroptionen ausblenden? (Info → Darstellung, Standard: an) */
+  _hideOff() {
+    try {
+      return localStorage.getItem("safe_home_hide_off") !== "0";
+    } catch (e) {
+      return true;
+    }
+  }
+
+  /** Alles, wovon das Ein- oder Ausblenden abhängt – ändert es sich, wird neu gezeichnet. */
+  _visSig() {
+    const d = this._draft || {};
+    if (!this._hideOff()) return "all";
+    return JSON.stringify([
+      d.battery_enabled !== false, !!d.tts_enabled, !!d.alexa_enabled, d.tts_entry_warning !== false, !!d.siren_time_enabled,
+      (d.notify_services || []).length > 0, !!d.whatsapp_enabled, !!d.household_enabled, d.auto_arm !== false, d.pins_enabled !== false,
+      !!d.week_enabled, this._modOn?.("auto"), this._modOn?.("night"), this._presenceOn?.(),
+    ]);
   }
 
   _expandAll() {
@@ -1244,6 +1556,23 @@ class SafeHomePanel extends HTMLElement {
         const open = !sec.classList.contains("open");
         sec.classList.toggle("open", open);
         b.setAttribute("aria-expanded", String(open));
+        const fn = this._sumFns?.[sec.dataset.sec];
+        if (!open && fn) {
+          let txt = "";
+          try {
+            txt = fn() || "";
+          } catch (e) {
+            /* ignore */
+          }
+          let el = b.querySelector(".box-sum");
+          if (!el && txt) {
+            el = document.createElement("p");
+            el.className = "box-sum";
+            b.querySelector(".box-tt").appendChild(el);
+          }
+          if (el) el.textContent = txt;
+          sec.classList.toggle("has-sum", !!txt);
+        }
         this._secMap()[sec.dataset.sec] = open;
         this._store("safe_home_sections", JSON.stringify(this._secState));
       })
@@ -1260,7 +1589,7 @@ class SafeHomePanel extends HTMLElement {
       { ic: "door", v: monitored.size, l: PT("Überwachte Sensoren"), go: "sensors" },
       { ic: "warn", v: (a.open_sensors || []).length, l: PT("Aktuell offen"), go: "sensors", warn: (a.open_sensors || []).length > 0 },
       { ic: "person", v: `${a.people_home ?? 0}/${(o.persons || []).length}`, l: PT("Personen zuhause"), go: "automation" },
-      { ic: "alarm", v: lastAlarm ? this._fmt(lastAlarm.time) : "–", l: PT("Letzter Alarm"), go: "log", small: true },
+      { ic: "alarm", v: lastAlarm ? this._fmt(lastAlarm.time) : "–", l: PT("Letzter Alarm"), go: "overview#sh-log", small: true },
     ];
     const hints = [];
     if (this._resource && this._resource.state !== "ok")
@@ -1281,7 +1610,26 @@ class SafeHomePanel extends HTMLElement {
               .join("")}</div>`)
           : this._section(PT("Alles eingerichtet"), "", `<div class="allgood">${pi("check")} ${PT("Sensoren, Benachrichtigungen, Sirene, Automatik und PIN sind konfiguriert.")}</div>`)
       }
-      <div class="cardhost"></div>`;
+      <div class="cardhost"></div>
+      ${this._logHtml()}
+      ${this._testHtml()}`;
+  }
+
+  _testHtml() {
+    const tests = [
+      ["notify", "bell", PT("Benachrichtigung")],
+      ["siren", "speaker", PT("Sirene (3 s)")],
+      ["lights", "bulb", PT("Alarmlicht (5 s)")],
+      ["tts", "speaker", PT("Ansage")],
+      ["whatsapp", "chat", PT("WhatsApp")],
+    ];
+    return this._section(
+      PT("Funktionstest"),
+      PT("Ausgänge prüfen – mit den gespeicherten Einstellungen."),
+      `<div class="tests">${tests.map(([k, ic, l]) => `<button class="btn soft" data-test="${k}">${pi(ic)} ${l}</button>`).join("")}</div><div class="drill-host">${this._drillHtml()}</div>`,
+      "",
+      { coll: true, id: "test", sum: () => PT("Benachrichtigung, Sirene, Licht, Ansage und WhatsApp prüfen – oder einen Alarm von einem Sensor auslösen.") }
+    );
   }
 
   // --------------------------------------------------------------- Sensoren
@@ -1639,7 +1987,15 @@ class SafeHomePanel extends HTMLElement {
         </div>
         ${cards}
         ${zones.length < 3 ? `<button class="btn soft zadd" data-zadd>${pi("plus")} ${PT("Teilbereich hinzufügen")}</button>` : ""}
-      </div>`
+      </div>`,
+      "",
+      {
+        id: "areas",
+        sum: () => {
+          const zs = this._zones();
+          return zs.length ? PT("Hauptbereich + {names}", { names: zs.map((z, i) => this._zoneName(z, i)).join(", ") }) : PT("Nur Hauptbereich – keine Teilbereiche");
+        },
+      }
     );
   }
 
@@ -1822,7 +2178,7 @@ class SafeHomePanel extends HTMLElement {
     const zones = this._zones();
     const ids = this._sensorRows();
     const q = this._search.toLowerCase();
-    const shown = ids.filter((e) => !q || e.includes(q) || this._name(e).toLowerCase().includes(q));
+    const shown = ids.filter((e) => !q || e.includes(q) || this._name(e).toLowerCase().includes(q) || this._rawName(e).toLowerCase().includes(q));
     const suggestions = this._suggestions();
     const rows = shown
       .map((eid) => {
@@ -1844,7 +2200,7 @@ class SafeHomePanel extends HTMLElement {
           <div class="s-sw" data-label="${PT("Nacht")}">${sw("night_sensors", (d.night_sensors || []).includes(eid), PT("Nacht"))}</div>
           <div class="s-sw" data-label="${PT("Eingangsverzögerung")}">${sw("delayed_sensors", (d.delayed_sensors || []).includes(eid), PT("Eingangsverzögerung"))}</div>`;
         return `<div class="srow ${zones.length ? "has-area" : ""} ${zone ? "in-zone" : ""}" data-eid="${pesc(eid)}">
-          <div class="s-name">${pi(ic)}<div><b>${pesc(this._name(eid))}</b><small>${pesc(eid)}${this._area(eid) ? ` · ${pesc(this._area(eid))}` : ""}</small></div></div>
+          <div class="s-name">${pi(ic)}<div><b>${pesc(this._rawName(eid))}</b><small>${pesc(eid)}${this._area(eid) ? ` · ${pesc(this._area(eid))}` : ""}</small>${this._aliasField(eid)}</div></div>
           <div class="s-sw s-typ" data-label="${PT("Art")}">${this._typeSelect(eid)}</div>
           <div class="s-state" data-live="${pesc(eid)}">${this._stateChip(eid)}</div>
           ${areaSel}
@@ -1874,13 +2230,33 @@ class SafeHomePanel extends HTMLElement {
                 ${rows || `<div class="muted pad">${PT("Kein Treffer für „{q}“", { q: pesc(this._search) })}</div>`}
               </div>`
             : `<div class="emptybox">${pi("door")}<p>${PT("Noch keine Sensoren. Füge oben einen Sensor hinzu oder übernimm die Vorschläge.")}</p></div>`
-        }`
+        }`,
+        "",
+        {
+          id: "sensors",
+          sum: () => {
+            const dd = this._draft;
+            const n = this._sensorRows().length;
+            if (!n) return PT("Noch keine Sensoren");
+            return PT("{n} Sensoren · {a} Unterwegs · {b} Nacht · {c} verzögert", { n, a: (dd.away_sensors || []).length, b: (dd.night_sensors || []).length, c: (dd.delayed_sensors || []).length });
+          },
+        }
       )}
       ${this._delaysHtml()}
       ${this._section(
         PT("Überwachung"),
         PT("Offene und nicht erreichbare Sensoren, Batterien."),
-        `<div class="formhost" data-form="sensor_behaviour"></div><h3 class="sub-h">${pi("battery")} ${PT("Batterien")}</h3>${this._batteryListHtml()}<div class="formhost" data-form="battery"></div>`
+        `<div class="formhost" data-form="sensor_behaviour"></div><h3 class="sub-h">${pi("battery")} ${PT("Batterien")}</h3>${this._batteryListHtml()}<div class="formhost" data-form="battery"></div>`,
+        "",
+        {
+          id: "monitoring",
+          sum: () => {
+            const dd = this._draft;
+            const pol = dd.open_sensor_policy === "block" ? PT("Offene Sensoren verhindern Scharfschalten") : PT("Offene Sensoren werden überbrückt");
+            const bat = dd.battery_enabled === false ? PT("Batterien: aus") : PT("Batterien: Warnung ab {n} %", { n: dd.battery_threshold ?? 20 });
+            return `${pol} · ${bat}`;
+          },
+        }
       )}`;
   }
 
@@ -1954,16 +2330,32 @@ class SafeHomePanel extends HTMLElement {
       <div class="tl">
         <div class="tl-h">${pi(mode === "away" ? "away" : "night")} ${mode === "away" ? PT("Unterwegs") : PT("Nacht")}</div>
         <div class="tl-bar">
-          ${seg(exit, "exit", PT("Ausgangsverzögerung"), exit ? `${exit} s` : PT("sofort"))}
-          ${seg(30, "armed", PT("Scharf"), PT("überwacht"))}
-          ${seg(entry, "entry", PT("Eingangsverzögerung"), entry ? `${entry} s` : PT("sofort"))}
+          ${Number(exit) ? seg(exit, "exit", PT("Ausgangsverzögerung"), `${exit} s`) : ""}
+          ${seg(30, "armed", PT("Scharf"), Number(exit) ? PT("überwacht") : PT("sofort überwacht"))}
+          ${Number(entry) ? seg(entry, "entry", PT("Eingangsverzögerung"), `${entry} s`) : ""}
           ${alarmSegs}
         </div>
       </div>`;
+    const num = (k) => `<label class="num-f"><input type="number" inputmode="numeric" min="0" max="3600" step="1" data-delay="${k}" value="${pesc(d[k] ?? 0)}" aria-label="${PT(LABELS[k] || k)}"><i>s</i></label>`;
+    const errs = ["exit_delay_away", "entry_delay_away", "exit_delay_night", "entry_delay_night"].filter((k) => this._errors[k]).map((k) => `<em class="fb-err">${pesc(this._errors[k])}</em>`).join("");
+    const table = `<div class="dl-table" role="group" aria-label="${PT("Verzögerungen")}">
+        <span></span><b>${pi("door")}${PT("Verlassen")}</b><b>${pi("home")}${PT("Heimkommen")}</b>
+        <span class="dl-m">${pi("away")}${PT("Unterwegs")}</span>${num("exit_delay_away")}${num("entry_delay_away")}
+        <span class="dl-m">${pi("night")}${PT("Nacht")}</span>${num("exit_delay_night")}${num("entry_delay_night")}
+      </div>${errs}`;
+    const t = (v) => (Number(v) ? `${Number(v)} s` : PT("sofort"));
     return this._section(
       PT("Verzögerungen"),
       PT("Zeit zum Verlassen und zum Entschärfen beim Heimkommen – in Sekunden."),
-      `<div class="tl-host">${tl("away", d.exit_delay_away, d.entry_delay_away)}${tl("night", d.exit_delay_night, d.entry_delay_night)}</div><div class="formhost" data-form="delays"></div>`
+      `${table}<div class="tl-host">${tl("away", d.exit_delay_away, d.entry_delay_away)}${tl("night", d.exit_delay_night, d.entry_delay_night)}</div>`,
+      "",
+      {
+        id: "delays",
+        sum: () => {
+          const dd = this._draft;
+          return PT("Unterwegs: {a} / {b} · Nacht: {c} / {e} (Verlassen / Heimkommen)", { a: t(dd.exit_delay_away), b: t(dd.entry_delay_away), c: t(dd.exit_delay_night), e: t(dd.entry_delay_night) });
+        },
+      }
     );
   }
 
@@ -2023,6 +2415,11 @@ class SafeHomePanel extends HTMLElement {
     const week = this._week();
     const hours = [0, 3, 6, 9, 12, 15, 18, 21, 24].map((h) => `<span class="${h % 6 ? "odd" : ""}" style="left:${(h / 24) * 100}%">${String(h).padStart(2, "0")}</span>`).join("");
     const tb = (k, ic, l) => `<button class="${tool === k ? "on" : ""}" data-wktool="${k}">${pi(ic)} ${PT(l)}</button>`;
+    const hide = this._hideOff();
+    if (hide && dis)
+      return `<div class="wk dis"><div class="wk-off">${pi("pin")}<span>${PT("Der Wochenplan ist nur ohne „Anwesenheit“ nutzbar – schalte „Anwesenheit“ aus, um ihn zu verwenden.")}</span></div></div>`;
+    if (hide && !this._draft.week_enabled)
+      return `<div class="wk"><label class="fb-check wk-en"><input type="checkbox" data-wk-en> ${PT("Wochenplan verwenden")}</label></div>`;
     return `<div class="wk ${dis ? "dis" : ""}">
       ${dis ? `<div class="wk-off">${pi("pin")}<span>${PT("Ausgegraut, solange „Anwesenheit“ eingeschaltet ist.")}</span></div>` : `<div class="wk-note">${pi("info")}<span>${PT("Solange der Wochenplan aktiv ist, pausiert der Nachtmodus-Zeitplan.")}</span></div>`}
       <div class="wk-body" ${dis ? 'inert aria-disabled="true"' : ""}>
@@ -2167,32 +2564,92 @@ class SafeHomePanel extends HTMLElement {
 
   // ---------------------------------------------------------------- Aktionen
   _actionsHtml() {
-    const tests = [
-      ["notify", "bell", PT("Benachrichtigung")],
-      ["siren", "speaker", PT("Sirene (3 s)")],
-      ["lights", "bulb", PT("Alarmlicht (5 s)")],
-      ["tts", "speaker", PT("Ansage")],
-      ["whatsapp", "chat", PT("WhatsApp")],
-    ];
+    const d = this._draft;
+    const hide = this._hideOff();
+    const phones = (d.notify_services || []).length > 0;
+    const waOn = !!d.whatsapp_enabled || !hide;
     return `
       ${this._section(
         PT("Sirene & Licht"),
         PT("Was vor Ort passiert – und wann die Sirene ertönt."),
-        `<div class="formhost" data-form="lights"></div>${this._sirenSummaryHtml()}<div class="formhost" data-form="siren"></div><div class="si-host">${this._sirenSensorsHtml()}</div>
-         <h3 class="sub-h">${pi("timer")} ${PT("Dauer")}</h3><div class="formhost" data-form="alarm_time"></div>`
+        `<div class="formhost" data-form="lights"></div>${this._sirenSummaryHtml()}<div class="formhost" data-form="siren"></div>
+         <h3 class="sub-h">${pi("timer")} ${PT("Dauer")}</h3><div class="formhost" data-form="alarm_time"></div>
+         ${this._adv(
+           "siren",
+           `<h3 class="sub-h">${pi("clock")} ${PT("Zeitfenster")}</h3><div class="formhost" data-form="siren_adv"></div>
+            <div class="si-host">${this._sirenSensorsHtml()}</div>
+            <div class="formhost" data-form="alarm_adv"></div>`,
+           ["siren_time_enabled", "siren_time_start", "siren_time_end", "rearm_after_trigger"]
+         )}`,
+        "",
+        {
+          id: "siren",
+          sum: () => {
+            const dd = this._draft;
+            const n = (dd.sirens || []).length;
+            if (!n) return PT("Keine Sirene ausgewählt");
+            const modes = Array.isArray(dd.siren_modes) ? dd.siren_modes : ["away", "night"];
+            const parts = [n === 1 ? PT("1 Sirene") : PT("{n} Sirenen", { n })];
+            if ((dd.alarm_lights || []).length) parts.push(PT("Alarmlicht"));
+            parts.push(modes.length ? modes.map((m) => PT(m === "away" ? "Unterwegs" : "Nacht")).join(" + ") : PT("in keinem Modus"));
+            parts.push(Number(dd.trigger_time) ? PT("Alarm {t}", { t: fmtDur(dd.trigger_time) }) : PT("Alarm bis Aus"));
+            return parts.join(" · ");
+          },
+        }
       )}
-      ${this._section(PT("Benachrichtigungen"), PT("Push-Nachricht auf deine Smartphones."), `<div class="np-host">${this._phonesHtml()}</div><div class="formhost" data-form="actions"></div>`)}
-      ${this._section(PT("Sprachansagen"), PT("Ansagen über Lautsprecher und Alexa – passend zum Melder."), `<div class="formhost" data-form="tts"></div><div class="tts-hint">${this._ttsHintHtml()}</div>${this._draft.tts_enabled ? this._ttsPreviewHtml() : ""}`)}
+      ${this._section(
+        PT("Benachrichtigungen"),
+        PT("Push-Nachricht auf deine Smartphones."),
+        `<div class="np-host">${this._phonesHtml()}</div>${
+          phones || !hide
+            ? `<div class="formhost" data-form="actions"></div>${this._adv("notify", `<div class="formhost" data-form="actions_adv"></div>`, ["notification_disarm_action", "cameras"])}`
+            : ""
+        }`,
+        "",
+        {
+          id: "notify",
+          sum: () => {
+            const dd = this._draft;
+            const n = (dd.notify_services || []).length;
+            if (!n) return PT("Kein Smartphone ausgewählt");
+            return [n === 1 ? PT("1 Smartphone") : PT("{n} Smartphones", { n }), dd.critical_notifications ? PT("kritisch") : "", dd.notify_state_changes ? PT("auch Schaltungen") : ""].filter(Boolean).join(" · ");
+          },
+        }
+      )}
+      ${this._section(
+        PT("Sprachansagen"),
+        PT("Ansagen über Lautsprecher und Alexa – passend zum Melder."),
+        `<div class="formhost" data-form="tts"></div>${d.tts_enabled || !hide ? `<div class="tts-hint">${this._ttsHintHtml()}</div>` : ""}${d.tts_enabled ? this._ttsPreviewHtml() : ""}`,
+        "",
+        {
+          id: "tts",
+          sum: () => {
+            const dd = this._draft;
+            if (!dd.tts_enabled) return PT("Aus");
+            const n = (dd.media_players || []).length;
+            return [PT("An"), n === 1 ? PT("1 Lautsprecher") : PT("{n} Lautsprecher", { n }), dd.alexa_enabled ? PT("Alexa") : ""].filter(Boolean).join(" · ");
+          },
+        }
+      )}
       ${this._section(
         PT("WhatsApp über TextMeBot"),
         PT("Alarm per WhatsApp. Empfänger mit Wartezeit nur, wenn der Alarm dann noch läuft."),
-        `${this._waInfoHtml()}<div class="formhost" data-form="whatsapp"></div>${this._waHtml()}`
+        `${this._waInfoHtml()}<div class="formhost" data-form="whatsapp"></div>${
+          waOn ? `${this._waHtml()}<p class="muted small-note">${pi("info")} ${PT("Den Wortlaut der WhatsApp-Nachrichten legst du unter „Texte & Vorlagen“ fest.")}</p>` : ""
+        }`,
+        "",
+        {
+          id: "whatsapp",
+          sum: () => {
+            const dd = this._draft;
+            if (!dd.whatsapp_enabled) return PT("Aus");
+            const list = Array.isArray(dd.whatsapp_recipients) ? dd.whatsapp_recipients : [];
+            return PT("An · {n} von {m} Empfängern aktiv", { n: list.filter((r) => r.enabled !== false).length, m: list.length });
+          },
+        }
       )}
-      ${this._section(
-        PT("Testen"),
-        PT("Ausgänge prüfen – mit den gespeicherten Einstellungen."),
-        `<div class="tests">${tests.map(([k, ic, l]) => `<button class="btn soft" data-test="${k}">${pi(ic)} ${l}</button>`).join("")}</div><div class="drill-host">${this._drillHtml()}</div>`
-      )}`;
+      ${this._textsHtml()}
+`;
   }
 
   _sirenSummaryHtml() {
@@ -2274,8 +2731,179 @@ class SafeHomePanel extends HTMLElement {
       ${example ? `<div class="wa-note">${pi("warn")}<span>${PT("Die Einträge sind Beispieldaten. Bitte durch echte Nummern und deine TextMeBot-API-Keys ersetzen – an Beispieldaten wird nie gesendet.")}</span></div>` : ""}
       ${rows || `<div class="muted pad">${PT("Noch keine Empfänger.")}</div>`}
       <div class="tests"><button class="btn soft" data-wa-add>${pi("plus")} ${PT("Empfänger hinzufügen")}</button></div>
-      <p class="muted small-note">${PT("Den API-Key bekommst du auf textmebot.com („Request ApiKey“) – gesendet wird vom WhatsApp-Konto, das mit dem Key verbunden ist. Nummer international angeben (z. B. +49…), für Gruppen die Gruppen-ID. Zwischen zwei Nachrichten liegen einige Sekunden Abstand, damit TextMeBot keine verwirft.")}</p>
     </div>`;
+  }
+
+  // ------------------------------------------------------------ Texte & Vorlagen
+  _tplCatalog() {
+    return Array.isArray(this._data?.template_catalog) ? this._data.template_catalog : [];
+  }
+
+  /** Aktueller Text einer Vorlage (eigener Text, beim WhatsApp-Alarm auch der bisherige Nachrichtentext, sonst Standard). */
+  _tplValue(item) {
+    const own = (this._draft.templates || {})[item.key];
+    if (own) return own;
+    if (item.key === "wa_alarm" && String(this._draft.whatsapp_message || "").trim()) return String(this._draft.whatsapp_message).trim();
+    return item.default;
+  }
+
+  _tplSample() {
+    const now = new Date();
+    const two = (n) => String(n).padStart(2, "0");
+    const de = P_LANG === "de";
+    return {
+      name: this._title || "Safe Home",
+      time: `${two(now.getHours())}:${two(now.getMinutes())}`,
+      date: de ? `${two(now.getDate())}.${two(now.getMonth() + 1)}.${now.getFullYear()}` : now.toISOString().slice(0, 10),
+      sensor: PT("Haustür"),
+      cause: PT("Tür geöffnet: {name}", { name: PT("Haustür") }),
+      mode: PT("Unterwegs"),
+      zone: PT("Garage"),
+      headline: PT("Achtung, möglicher Einbruch!"),
+      detail: PT("Geöffnete Tür erkannt: {name}.", { name: PT("Haustür") }),
+      minutes: 10, delay: 30, n: 20, icon: "🛡️", source: "Max", count: 5,
+      names: PT("Terrassentür"), action: PT("Ausschalten"), m: 5, level: 15, state: PT("Feucht"),
+      title: PT("⚠️ Sensoren überbrückt"), message: PT("Beim Aktivieren waren offen: Terrassentür."),
+    };
+  }
+
+  _tplRender(text) {
+    const v = this._tplSample();
+    return String(text).replace(/\{(\w+)\}/g, (m, k) => (k in v ? String(v[k]) : m));
+  }
+
+  _textsHtml() {
+    const cat = this._tplCatalog();
+    const on = !!this._draft.custom_templates;
+    const changed = () => Object.keys(this._draft.templates || {}).length + (String(this._draft.whatsapp_message || "").trim() && !(this._draft.templates || {}).wa_alarm ? 1 : 0);
+    const groups = [
+      ["alarm", "Alarm", "alarm"],
+      ["entry", "Eingangsverzögerung", "timer"],
+      ["state", "Scharf & unscharf", "shield"],
+      ["warnings", "Hinweise", "warn"],
+      ["household", "Haushalt", "drop"],
+      ["sensor", "Texte je Melder-Art", "door"],
+    ];
+    const chan = { push_title: ["bell", "Push · Titel"], push: ["bell", "Push · Text"], wa: ["chat", "WhatsApp"], tts: ["speaker", "Ansage"], cause: ["list", "Auslöser"] };
+    const body = !on
+      ? `<p class="muted small-note">${PT("Aus: Safe Home verwendet die eingebauten Texte und die Namen aus Home Assistant.")}</p>`
+      : !cat.length
+        ? `<div class="wa-note">${pi("warn")}<span>${PT("Bitte Home Assistant neu starten, damit die Vorlagen geladen werden.")}</span></div>`
+        : `<div class="wk-note">${pi("info")}<span>${PT("Leere oder unveränderte Texte nutzen den Standard. Platzhalter wie {sensor} werden beim Senden ersetzt – antippen fügt sie ein. Eigene Sensornamen trägst du unter „Bereiche & Sensoren“ und „Haushalt“ direkt beim Sensor ein.")}</span></div>
+          ${groups
+            .map(([g, label, ic]) => {
+              const items = cat.filter((t) => t.group === g);
+              if (!items.length) return "";
+              const mod = items.filter((t) => this._tplValue(t) !== t.default).length;
+              const open = (this._tplOpen || {})[g];
+              return `<details class="tg" data-tg="${g}" ${open ? "open" : ""}>
+                <summary>${pi(ic)}<b>${PT(label)}</b><span class="tg-n">${mod ? PT("{n} geändert", { n: mod }) : PT("Standard")}</span>${pi("chev", "wa-chev")}</summary>
+                <div class="tg-b">${items
+                  .map((t) => {
+                    const val = this._tplValue(t);
+                    const isMod = val !== t.default;
+                    const [cic, cl] = chan[t.channel] || ["list", t.channel];
+                    return `<div class="tpl ${isMod ? "mod" : ""}" data-tkey="${t.key}">
+                      <div class="tpl-h"><b>${PT(TPL_LABELS[t.key] || t.key)}</b><span class="tpl-ch ch-${t.channel}">${pi(cic)}${PT(cl)}</span><span class="tpl-sp"></span>
+                        <button class="btn ghost sm" data-treset="${t.key}" ${isMod ? "" : "hidden"}>${pi("refresh")} ${PT("Standard")}</button></div>
+                      <textarea class="fb tpl-in" data-tpl="${t.key}" rows="${t.channel === "wa" && t.key === "wa_alarm" ? 5 : t.channel === "push_title" || t.channel === "cause" ? 1 : 2}" spellcheck="true">${pesc(val)}</textarea>
+                      <div class="tpl-ph">${t.placeholders.map((ph) => `<button type="button" class="ph" data-ph="${ph}" title="${pesc(PT(PH_HELP[ph] || ph))}">{${ph}}</button>`).join("")}</div>
+                      <div class="tpl-prev"><span>${PT("Vorschau")}:</span> <em data-tprev="${t.key}">${pesc(this._tplRender(val))}</em></div>
+                    </div>`;
+                  })
+                  .join("")}</div>
+              </details>`;
+            })
+            .join("")}
+          <div class="tests"><button class="btn ghost sm" data-treset-all>${pi("refresh")} ${PT("Alle Texte auf Standard")}</button></div>`;
+    return this._section(
+      PT("Texte & Vorlagen"),
+      PT("Wortlaut von Push, WhatsApp und Ansagen sowie eigene Sensornamen."),
+      `<label class="fb-check tpl-master"><input type="checkbox" data-custom-tpl ${on ? "checked" : ""}> ${PT("Eigene Vorlagen festlegen")}</label>${body}`,
+      "",
+      {
+        id: "texts",
+        sum: () => {
+          if (!this._draft.custom_templates) return PT("Eingebaute Texte");
+          const n = changed();
+          const a = Object.keys(this._draft.sensor_names || {}).length;
+          return [PT("Eigene Vorlagen"), n ? PT("{n} Texte geändert", { n }) : PT("alle Texte Standard"), a ? PT("{n} eigene Sensornamen", { n: a }) : ""].filter(Boolean).join(" · ");
+        },
+      }
+    );
+  }
+
+  _setTpl(key, value) {
+    const item = this._tplCatalog().find((t) => t.key === key);
+    if (!item) return;
+    const tpls = { ...(this._draft.templates || {}) };
+    const v = String(value).replace(/\r\n/g, "\n");
+    if (!v.trim() || v.trim() === item.default) delete tpls[key];
+    else tpls[key] = v;
+    this._set("templates", tpls);
+    // Der WhatsApp-Alarmtext liegt jetzt in den Vorlagen – der alte Einzeltext entfällt
+    if (key === "wa_alarm" && this._draft.whatsapp_message) this._set("whatsapp_message", "");
+  }
+
+  _bindTemplates(root) {
+    root.querySelector("[data-custom-tpl]")?.addEventListener("change", (e) => {
+      this._set("custom_templates", e.target.checked);
+      this._render();
+    });
+    root.querySelectorAll("details.tg").forEach((d) =>
+      d.addEventListener("toggle", () => {
+        this._tplOpen = { ...(this._tplOpen || {}), [d.dataset.tg]: d.open };
+      })
+    );
+    const refresh = (box, key) => {
+      const item = this._tplCatalog().find((t) => t.key === key);
+      const ta = box.querySelector("[data-tpl]");
+      const mod = ta.value.trim() !== item.default && !!ta.value.trim();
+      box.classList.toggle("mod", mod);
+      box.querySelector("[data-treset]").hidden = !mod;
+      box.querySelector("[data-tprev]").textContent = this._tplRender(ta.value.trim() ? ta.value : item.default);
+      const det = box.closest("details.tg");
+      const n = [...det.querySelectorAll(".tpl")].filter((x) => x.classList.contains("mod")).length;
+      det.querySelector(".tg-n").textContent = n ? PT("{n} geändert", { n }) : PT("Standard");
+    };
+    root.querySelectorAll("[data-tpl]").forEach((ta) =>
+      ta.addEventListener("input", () => {
+        this._setTpl(ta.dataset.tpl, ta.value);
+        refresh(ta.closest(".tpl"), ta.dataset.tpl);
+      })
+    );
+    root.querySelectorAll("[data-treset]").forEach((b) =>
+      b.addEventListener("click", () => {
+        const item = this._tplCatalog().find((t) => t.key === b.dataset.treset);
+        const box = b.closest(".tpl");
+        box.querySelector("[data-tpl]").value = item.default;
+        this._setTpl(item.key, item.default);
+        if (item.key === "wa_alarm") this._set("whatsapp_message", "");
+        refresh(box, item.key);
+      })
+    );
+    root.querySelectorAll(".ph").forEach((b) =>
+      b.addEventListener("mousedown", (e) => e.preventDefault())
+    );
+    root.querySelectorAll(".ph").forEach((b) =>
+      b.addEventListener("click", () => {
+        const box = b.closest(".tpl");
+        const ta = box.querySelector("[data-tpl]");
+        const ins = `{${b.dataset.ph}}`;
+        const a = ta.selectionStart ?? ta.value.length;
+        const z = ta.selectionEnd ?? ta.value.length;
+        ta.value = ta.value.slice(0, a) + ins + ta.value.slice(z);
+        ta.focus();
+        ta.setSelectionRange(a + ins.length, a + ins.length);
+        ta.dispatchEvent(new Event("input"));
+      })
+    );
+    root.querySelector("[data-treset-all]")?.addEventListener("click", () => {
+      this._set("templates", {});
+      this._set("whatsapp_message", "");
+      this._render();
+      this._showToast(PT("Alle Texte stehen wieder auf Standard"), "ok");
+    });
   }
 
   _waInfoHtml() {
@@ -2285,6 +2913,7 @@ class SafeHomePanel extends HTMLElement {
       PT("Es gibt keine Zustellgarantie: Nachrichten können verzögert ankommen oder ausfallen, wenn TextMeBot oder WhatsApp gestört sind. Nutze WhatsApp deshalb nur zusätzlich zu Push-Benachrichtigungen und Sirene."),
       PT("Telefonnummern und Nachrichtentexte werden zum Versand an TextMeBot übermittelt."),
       PT("Mit den Häkchen legst du fest, wer gerade benachrichtigt wird – z. B. zeitweise nur eine Person."),
+      PT("Den API-Key bekommst du auf textmebot.com („Request ApiKey“) – gesendet wird vom WhatsApp-Konto, das mit dem Key verbunden ist. Nummer international angeben (z. B. +49…), für Gruppen die Gruppen-ID. Zwischen zwei Nachrichten liegen einige Sekunden Abstand, damit TextMeBot keine verwirft."),
     ];
     return `<details class="wa-info"${this._waInfoOpen ? " open" : ""}>
       <summary>${pi("warn")}<b>${PT("Wichtige Hinweise zu WhatsApp-Benachrichtigungen")}</b>${pi("chev", "wa-chev")}</summary>
@@ -2318,22 +2947,53 @@ class SafeHomePanel extends HTMLElement {
         return `<div class="pp ${home ? "home" : ""}"><span class="av">${pic ? `<img src="${pesc(pic)}" alt="">` : pesc(nm[0] || "?")}</span><b>${pesc(nm)}</b><small>${home ? PT("Zuhause") : s ? pesc(s.state === "not_home" ? PT("Unterwegs") : s.state) : "?"}</small></div>`;
       })
       .join("");
+    const hide = this._hideOff();
+    const hm = (v) => String(v || "").slice(0, 5);
+    const nightForm = hide && !this._modOn("night") ? "" : `<div class="formhost" data-form="night"></div>`;
     return `
       ${this._section(
         PT("Anwesenheit"),
         PT("Automatisch scharf und unscharf nach Standort deiner Personen."),
-        `${this._modSwitchHtml("auto")}${persons.length ? `<div class="people">${ppl}</div>` : ""}<div class="formhost" data-form="presence"></div>`
+        `${this._modSwitchHtml("auto")}${persons.length ? `<div class="people">${ppl}</div>` : ""}<div class="formhost" data-form="presence"></div>`,
+        "",
+        {
+          id: "presence",
+          sum: () => {
+            const n = (this._draft.persons || []).length;
+            return `${this._modOn("auto") ? PT("An") : PT("Aus")} · ${n === 1 ? PT("1 Person") : PT("{n} Personen", { n })}`;
+          },
+        }
       )}
-      ${this._section(PT("Wochenplan"), PT("Feste Scharf-Zeiten je Wochentag – nur ohne „Anwesenheit“."), `<div class="wk-host">${this._weekHtml()}</div>`)}
+      ${this._section(PT("Wochenplan"), PT("Feste Scharf-Zeiten je Wochentag – nur ohne „Anwesenheit“."), `<div class="wk-host">${this._weekHtml()}</div>`, "", {
+        id: "week",
+        sum: () => {
+          if (this._presenceOn()) return PT("Pausiert – „Anwesenheit“ ist eingeschaltet");
+          if (!this._draft.week_enabled) return PT("Aus");
+          const n = this._week().reduce((a, d) => a + d.length, 0);
+          return PT("An · {n} Zeitfenster pro Woche", { n });
+        },
+      })}
       ${this._section(
         PT("Nachtmodus"),
         PT("Nachts nur die Nachtsensoren überwachen."),
         this._weekRules()
           ? `<div class="wk-off">${pi("timer")}<span>${PT("Pausiert – der Wochenplan legt fest, wann „Nacht“ scharf ist.")}</span></div>
-             <div class="night-dis" inert aria-disabled="true">${this._modSwitchHtml("night")}<div class="formhost" data-form="night"></div></div>`
-          : `${this._modSwitchHtml("night")}<div class="formhost" data-form="night"></div>`
+             ${hide ? "" : `<div class="night-dis" inert aria-disabled="true">${this._modSwitchHtml("night")}<div class="formhost" data-form="night"></div></div>`}`
+          : `${this._modSwitchHtml("night")}${nightForm}`,
+        "",
+        {
+          id: "night",
+          sum: () => {
+            if (this._weekRules()) return PT("Pausiert – der Wochenplan ist aktiv");
+            if (!this._modOn("night")) return PT("Aus");
+            return PT("An · {a}–{b} Uhr", { a: hm(this._draft.night_start), b: hm(this._draft.night_end) });
+          },
+        }
       )}
-      ${this._section(PT("So handelt Safe Home selbstständig"), PT("Zusammenfassung deiner Einstellungen."), `<div class="rules">${this._rulesHtml()}</div>`)}`;
+      <details class="explain" ${this._explainOpen ? "open" : ""}>
+        <summary>${pi("info")}<b>${PT("Wie arbeitet die Automatik?")}</b><small>${PT("Zusammenfassung deiner Einstellungen")}</small>${pi("chev", "wa-chev")}</summary>
+        <div class="rules">${this._rulesHtml()}</div>
+      </details>`;
   }
 
   /** Entität des Schalters „Home-Zone“ (auto) bzw. „Nachtzeit“ (night) – dieselbe wie auf den Karten. */
@@ -2482,7 +3142,7 @@ class SafeHomePanel extends HTMLElement {
         }
         const bin = this._hhIsBinary(eid);
         return `<div class="hhrow">
-          <div class="s-name">${pi(bin ? this._typeIcon(eid) : "bell")}<div><b>${pesc(this._name(eid))}</b><small>${pesc(eid)}${this._area(eid) ? ` · ${pesc(this._area(eid))}` : ""}</small></div></div>
+          <div class="s-name">${pi(bin ? this._typeIcon(eid) : "bell")}<div><b>${pesc(this._rawName(eid))}</b><small>${pesc(eid)}${this._area(eid) ? ` · ${pesc(this._area(eid))}` : ""}</small>${this._aliasField(eid)}</div></div>
           <div class="hh-state" data-hhlive="${pesc(eid)}">${this._hhChip(eid)}</div>
           <label class="hh-pick hh-typ"><span>${PT("Art")}</span>${bin ? this._typeSelect(eid) : `<span class="muted">–</span>`}</label>
           <label class="hh-pick"><span>${PT("Melden bei")}</span>${picker}</label>
@@ -2490,20 +3150,32 @@ class SafeHomePanel extends HTMLElement {
         </div>`;
       })
       .join("");
+    const hhOn = !!this._draft.household_enabled || !this._hideOff();
+    const via = () => {
+      const dd = this._draft;
+      return [dd.household_notify !== false ? PT("Push") : "", dd.whatsapp_household ? PT("WhatsApp") : "", dd.tts_household ? PT("Ansage") : ""].filter(Boolean).join(", ");
+    };
     return `
       ${this._section(
         PT("Haushalt"),
         PT("Wasser- und andere Sensoren – unabhängig von der Alarmanlage, ohne Sirene."),
-        `<div class="formhost" data-form="household"></div><h3 class="sub-h">${pi("bell")} ${PT("Melden per")}</h3><div class="formhost" data-form="household_send"></div>`
+        `<div class="formhost" data-form="household"></div>${hhOn ? `<h3 class="sub-h">${pi("bell")} ${PT("Melden per")}</h3><div class="formhost" data-form="household_send"></div>` : ""}`,
+        "",
+        {
+          id: "household",
+          sum: () => (this._draft.household_enabled ? (via() ? PT("An · meldet per {v}", { v: via() }) : PT("An · kein Meldeweg gewählt")) : PT("Aus")),
+        }
       )}
-      ${this._section(
+      ${!hhOn ? "" : this._section(
         PT("Sensoren"),
         PT("Je Sensor: bei welchem Zustand gemeldet wird."),
         `<div class="toolbar">
           <div class="addhost hh-add"></div>
           ${sugg.length ? `<button class="btn soft" data-hhsuggest>${pi("spark")} ${PT("{n} Wassersensoren hinzufügen", { n: sugg.length })}</button>` : ""}
         </div>
-        ${items.length ? `<div class="stable">${rows}</div>` : `<div class="emptybox">${pi("drop")}<p>${PT("Noch keine Sensoren. Füge oben z. B. deine Wassersensoren hinzu.")}</p></div>`}`
+        ${items.length ? `<div class="stable">${rows}</div>` : `<div class="emptybox">${pi("drop")}<p>${PT("Noch keine Sensoren. Füge oben z. B. deine Wassersensoren hinzu.")}</p></div>`}`,
+        "",
+        { id: "hh-sensors", sum: () => { const n = this._hhItems().length; return n ? (n === 1 ? PT("1 Sensor") : PT("{n} Sensoren", { n })) : PT("Noch keine Sensoren"); } }
       )}`;
   }
 
@@ -2566,14 +3238,33 @@ class SafeHomePanel extends HTMLElement {
   _securityHtml() {
     if (!this._users && !this._usersLoading) this._loadUsers();
     const on = this._draft.pins_enabled !== false;
-    const off = (inner) => (on ? inner : `<div class="night-dis" inert aria-disabled="true">${inner}</div>`);
+    const hide = this._hideOff();
+    const off = (inner) => (on ? inner : hide ? "" : `<div class="night-dis" inert aria-disabled="true">${inner}</div>`);
     return `${this._section(
       PT("PIN-Eingabe"),
       PT("Wann ein PIN nötig ist und was bei falschen PINs passiert."),
       `<div class="area-sw pin-master">${pi("lock")}<div><b>${PT("PIN-Funktion")}</b><small>${on ? PT("Eingeschaltet") : PT("Ausgeschaltet – die Alarmanlage lässt sich ohne PIN bedienen.")}</small></div><button class="sw ${on ? "on" : ""}" data-pins-on role="switch" aria-checked="${on}" aria-label="${PT("PIN-Funktion")}"><i></i></button></div>
-       ${off(`<div class="pa-host">${this._pinAreasHtml()}</div><div class="formhost" data-form="security"></div>`)}`
+       ${off(`<div class="pa-host">${this._pinAreasHtml()}</div><div class="formhost" data-form="security"></div>${this._adv("security", `<div class="formhost" data-form="security_adv"></div>`, ["code_max_attempts", "code_lockout_minutes"])}`)}`,
+      "",
+      {
+        id: "pin-entry",
+        sum: () => {
+          const dd = this._draft;
+          if (dd.pins_enabled === false) return PT("Aus – kein PIN nötig");
+          const n = Number(dd.code_max_attempts ?? 5);
+          return n > 0 ? PT("An · Sperre nach {n} falschen PINs", { n }) : PT("An");
+        },
+      }
     )}
-      ${this._section(PT("PINs verwalten"), PT("Ein PIN je Benutzer, dazu Gast-PINs mit Zeitraum."), off(`<div class="pin-host">${this._pinsHtml()}</div>`))}`;
+      ${on || !hide ? this._section(PT("PINs verwalten"), PT("Ein PIN je Benutzer, dazu Gast-PINs mit Zeitraum."), off(`<div class="pin-host">${this._pinsHtml()}</div>`), "", {
+        id: "pins",
+        sum: () => {
+          const list = this._pinList().filter((p) => p.code);
+          const u = list.filter((p) => p.type === "user").length;
+          const g = list.filter((p) => p.type !== "user").length;
+          return list.length ? PT("{u} Benutzer-PINs · {g} Gast-PINs", { u, g }) : PT("Noch kein PIN");
+        },
+      }) : ""}`;
   }
 
   /** Alle Bereiche: Hauptbereich + Teilbereiche → [[id, Name]] */
@@ -2689,7 +3380,6 @@ class SafeHomePanel extends HTMLElement {
       .join("");
     const none = !pins.some((p) => p.code);
     return `<div class="pins">
-      <div class="wk-note">${pi("lock")}<span>${PT("Je PIN wählst du, welche Bereiche damit geschaltet werden dürfen. Protokoll und Benachrichtigungen nennen, wessen PIN verwendet wurde.")}</span></div>
       ${none ? `<div class="wa-note">${pi("warn")}<span>${PT("Noch kein PIN – jeder mit Zugriff aufs Dashboard kann die Alarmanlage bedienen. Lege am besten zuerst einen PIN für dich selbst an.")}</span></div>` : ""}
       <h3 class="pin-h">${pi("person")} ${PT("Benutzer")}</h3>
       <div class="stable pin-list">${userRows || `<div class="muted pad">${this._usersErr ? PT("Benutzer konnten nicht geladen werden.") : "…"}</div>`}</div>
@@ -2834,9 +3524,14 @@ class SafeHomePanel extends HTMLElement {
     const groups = { all: null, alarm: ["triggered", "pending"], mode: ["armed", "disarmed", "arming"], warn: ["warning", "bypass", "household"] };
     const ev = all.filter((e) => !groups[this._logFilter] || groups[this._logFilter].includes(e.type));
     const tone = { armed: "away", disarmed: "home", triggered: "alarm", pending: "pending", arming: "arming", warning: "pending", bypass: "pending", household: "pending" };
+    const LIMIT = 5;
+    const shown = this._logAll ? ev : ev.slice(0, LIMIT);
+    const more = ev.length > LIMIT
+      ? `<div class="log-more"><button class="btn ghost sm" data-log-all>${this._logAll ? PT("Weniger anzeigen") : PT("Alle {n} anzeigen", { n: ev.length })}</button></div>`
+      : "";
     return this._section(
       PT("Protokoll"),
-      PT("Die letzten 30 Ereignisse dieser Instanz."),
+      PT("Die letzten Ereignisse dieser Instanz."),
       `<div class="toolbar">
         <div class="seg-ctl">${[["all", PT("Alle")], ["alarm", PT("Alarme")], ["mode", PT("Schaltungen")], ["warn", PT("Warnungen")]]
           .map(([k, l]) => `<button class="${this._logFilter === k ? "on" : ""}" data-lf="${k}">${l}</button>`)
@@ -2845,11 +3540,13 @@ class SafeHomePanel extends HTMLElement {
       </div>
       ${
         ev.length
-          ? `<ul class="log">${ev
+          ? `<ul class="log">${shown
               .map((e) => `<li><i class="dot t-${tone[e.type] || "info"}"></i><span>${pesc(e.message)}</span><time>${this._fmt(e.time, true)}</time></li>`)
-              .join("")}</ul>`
+              .join("")}</ul>${more}`
           : `<div class="emptybox">${pi("list")}<p>${PT("Keine Einträge.")}</p></div>`
-      }`
+      }`,
+      "log-box",
+      { anchor: "sh-log" }
     );
   }
 
@@ -2864,6 +3561,9 @@ class SafeHomePanel extends HTMLElement {
       error: ["#ef2945", PT("Fehler")],
     }[r.state] || ["#64748b", r.state];
     const yaml = `lovelace:\n  resources:\n    - url: ${url}\n      type: module`;
+    if (r.state === "ok" && customElements.get("safe-home-card"))
+      return `<section class="box res-ok"><div class="res-line">${pi("check")}<span><b>${PT("Dashboard-Ressource eingetragen")}</b><small>${PT("Die Kartendatei ist eingetragen und in diesem Browser geladen – die Karten erscheinen zuverlässig.")}</small></span>
+        <button class="btn ghost sm" data-res="copy">${pi("list")} ${PT("Adresse kopieren")}</button></div></section>`;
     return this._section(
       PT("Dashboard-Ressource"),
       PT("Damit die Safe-Home-Karten beim Start der App zuverlässig erscheinen, muss die Kartendatei als Ressource eingetragen sein."),
@@ -2984,7 +3684,9 @@ class SafeHomePanel extends HTMLElement {
           <ol class="wsteps">${steps.map((t) => `<li>${pesc(t)}</li>`).join("")}</ol>
           <p class="muted small-note">${PT("Tippen auf das Widget aktualisiert es. Für sofortige Aktualisierung im Hintergrund der Companion App den Benachrichtigungszugriff erlauben. Zum Schalten der Modi kannst du zusätzlich Button-Widgets mit den Aktionen alarm_control_panel.alarm_arm_away / alarm_arm_night / alarm_disarm anlegen.")}</p>
         </div>
-      </div>`
+      </div>`,
+      "",
+      { coll: true, id: "widget", sum: () => PT("Template-Widget im Stil der Kompakt-Karte für den Android-Startbildschirm") }
     );
   }
 
@@ -3086,7 +3788,11 @@ class SafeHomePanel extends HTMLElement {
         <div class="box-h"><h2>${PT("Darstellung")}</h2><p>${PT("Wie die Einstellungsseite angezeigt wird – gilt für diesen Browser bzw. dieses Gerät.")}</p></div>
         <div class="opt-block">
           <label class="fb-check"><input type="checkbox" data-expand-all ${this._expandAll() ? "checked" : ""}> ${PT("Einstellungen standardmäßig ausklappen")}</label>
-          <p class="muted small-note">${PT("Aus: Die Abschnitte in den Reitern sind zugeklappt und öffnen sich per Tipp auf die Überschrift – besonders übersichtlich auf dem Smartphone.")}</p>
+          <p class="muted small-note">${PT("Aus: Die Abschnitte in den Reitern sind zugeklappt und zeigen eine Kurzfassung – ein Tipp auf die Überschrift öffnet sie.")}</p>
+        </div>
+        <div class="opt-block">
+          <label class="fb-check"><input type="checkbox" data-hide-off ${this._hideOff() ? "checked" : ""}> ${PT("Deaktivierte Unteroptionen ausblenden")}</label>
+          <p class="muted small-note">${PT("Ist eine Funktion ausgeschaltet (z. B. WhatsApp, Batterie-Überwachung oder das Zeitfenster der Sirene), werden ihre Einstellungen ausgeblendet, bis du sie einschaltest. Aus: Alle Einstellungen sind immer sichtbar.")}</p>
         </div>
         <div class="opt-block">
           <label class="fb-check ha-theme-opt"><input type="checkbox" data-ui-theme ${this._draft.ui_theme === "ha" ? "checked" : ""}> ${PT("Home-Assistant-Design verwenden")} <span class="beta">${PT("(Beta)")}</span></label>
@@ -3114,8 +3820,9 @@ class SafeHomePanel extends HTMLElement {
   // ------------------------------------------------------------- Formulare
   _formSchema(key) {
     const o = this._draft;
+    const hide = this._hideOff();
     const S = {
-      battery: o.battery_enabled === false
+      battery: hide && o.battery_enabled === false
         ? [{ name: "battery_enabled", selector: bool }]
         : [
             { name: "battery_enabled", selector: bool },
@@ -3147,31 +3854,36 @@ class SafeHomePanel extends HTMLElement {
       ],
       alarm_time: [
         { type: "grid", name: "", schema: [{ name: "trigger_time", selector: { duration: {} } }, { name: "siren_duration", selector: { duration: {} } }] },
-        { name: "rearm_after_trigger", selector: bool },
       ],
+      alarm_adv: [{ name: "rearm_after_trigger", selector: bool }],
       actions: [
         { name: "critical_notifications", selector: bool },
-        { name: "notification_disarm_action", selector: bool },
         { name: "notify_state_changes", selector: bool },
+      ],
+      actions_adv: [
+        { name: "notification_disarm_action", selector: bool },
         { name: "cameras", selector: ents("camera") },
       ],
-      tts: o.tts_enabled
+      tts: o.tts_enabled || !hide
         ? [
             { name: "tts_enabled", selector: bool },
             { type: "grid", name: "", schema: [{ name: "tts_entity", selector: ents("tts", false) }, { name: "media_players", selector: ents("media_player") }] },
             { name: "alexa_enabled", selector: bool },
-            ...(o.alexa_enabled ? [{ name: "alexa_devices", selector: { entity: { multiple: true, filter: [{ domain: "media_player", integration: "alexa_media" }] } } }] : []),
+            ...(o.alexa_enabled || !hide ? [{ name: "alexa_devices", selector: { entity: { multiple: true, filter: [{ domain: "media_player", integration: "alexa_media" }] } } }] : []),
             { name: "tts_silent_alarm", selector: bool },
             { name: "tts_entry_warning", selector: bool },
-            ...(o.tts_entry_warning !== false ? [{ name: "tts_entry_repeat", selector: { number: { min: 0, max: 60, step: 5, mode: "box", unit_of_measurement: "s" } } }] : []),
+            ...(o.tts_entry_warning !== false || !hide ? [{ name: "tts_entry_repeat", selector: { number: { min: 0, max: 60, step: 5, mode: "box", unit_of_measurement: "s" } } }] : []),
           ]
         : [{ name: "tts_enabled", selector: bool }],
-      presence: [
-        { name: "persons", selector: ents(["person", "device_tracker"]) },
-        { name: "auto_arm", selector: bool },
-        { name: "auto_arm_delay", selector: sec() },
-        { name: "auto_disarm", selector: bool },
-      ],
+      presence:
+        hide && !this._modOn("auto")
+          ? [{ name: "persons", selector: ents(["person", "device_tracker"]) }]
+          : [
+              { name: "persons", selector: ents(["person", "device_tracker"]) },
+              { name: "auto_arm", selector: bool },
+              ...(o.auto_arm !== false || !hide ? [{ name: "auto_arm_delay", selector: sec() }] : []),
+              { name: "auto_disarm", selector: bool },
+            ],
       night: [
         { type: "grid", name: "", schema: [{ name: "night_start", selector: { time: {} } }, { name: "night_end", selector: { time: {} } }] },
         { name: "night_only_when_home", selector: bool },
@@ -3191,15 +3903,22 @@ class SafeHomePanel extends HTMLElement {
             },
           },
         },
+      ],
+      siren_adv: [
         { name: "siren_time_enabled", selector: bool },
-        { type: "grid", name: "", schema: [{ name: "siren_time_start", selector: { time: {} } }, { name: "siren_time_end", selector: { time: {} } }] },
+        ...(o.siren_time_enabled || !hide
+          ? [{ type: "grid", name: "", schema: [{ name: "siren_time_start", selector: { time: {} } }, { name: "siren_time_end", selector: { time: {} } }] }]
+          : []),
       ],
-      whatsapp: [
-        { name: "whatsapp_enabled", selector: bool },
-        { name: "whatsapp_message", selector: { text: { multiline: true } } },
-        { name: "whatsapp_all_clear", selector: bool },
-        { name: "whatsapp_other_messages", selector: bool },
-      ],
+      whatsapp:
+        hide && !o.whatsapp_enabled
+          ? [{ name: "whatsapp_enabled", selector: bool }]
+          : [
+              { name: "whatsapp_enabled", selector: bool },
+              { name: "whatsapp_all_clear", selector: bool },
+              { name: "whatsapp_other_messages", selector: bool },
+            ],
+      whatsapp_adv: [{ name: "whatsapp_message", selector: { text: { multiline: true } } }],
       household: [{ name: "household_enabled", selector: bool }],
       household_send: [
         { name: "household_notify", selector: bool },
@@ -3211,6 +3930,8 @@ class SafeHomePanel extends HTMLElement {
         { name: "code_arm_required", selector: bool },
         { name: "silence_requires_code", selector: bool },
         { name: "notify_wrong_code", selector: bool },
+      ],
+      security_adv: [
         {
           type: "grid",
           name: "",
@@ -3253,15 +3974,13 @@ class SafeHomePanel extends HTMLElement {
             if (JSON.stringify(nv ?? null) !== JSON.stringify(ov ?? null)) this._set(name, nv ?? (Array.isArray(ov) ? [] : nv));
           }
           f.data = toForm();
-          if (key === "battery" && (v.battery_enabled !== false) !== f._shBat) return this._render();
-          if (key === "tts" && `${!!v.tts_enabled}${!!v.alexa_enabled}${v.tts_entry_warning !== false}` !== f._shTts) return this._render();
+          if (JSON.stringify(flatNames(this._formSchema(key))) !== f._shSig) return this._render();
           if (key === "tts") this._refreshTtsHint();
           if (key === "delays") this._refreshTimeline();
-          if (key === "siren" || key === "lights") this._refreshSirenSummary();
+          if (key === "siren" || key === "siren_adv" || key === "lights") this._refreshSirenSummary();
           if (key === "presence" || key === "night") this._refreshRules();
         });
-        f._shBat = this._draft.battery_enabled !== false;
-        f._shTts = `${!!this._draft.tts_enabled}${!!this._draft.alexa_enabled}${this._draft.tts_entry_warning !== false}`;
+        f._shSig = JSON.stringify(flatNames(schema));
         host.appendChild(f);
         this._forms.push(f);
       } else {
@@ -3269,11 +3988,10 @@ class SafeHomePanel extends HTMLElement {
         host.querySelectorAll("[data-f]").forEach((inp) =>
           inp.addEventListener("change", () => {
             this._set(inp.dataset.f, readFallback(inp, this._draft[inp.dataset.f]));
-            if (key === "tts" && ["tts_enabled", "alexa_enabled", "tts_entry_warning"].includes(inp.dataset.f)) return this._render();
-            if (key === "battery" && inp.dataset.f === "battery_enabled") return this._render();
+            if (JSON.stringify(flatNames(this._formSchema(key))) !== JSON.stringify(flatNames(schema))) return this._render();
             if (key === "tts") this._refreshTtsHint();
             if (key === "delays") this._refreshTimeline();
-            if (key === "siren" || key === "lights") this._refreshSirenSummary();
+            if (key === "siren" || key === "siren_adv" || key === "lights") this._refreshSirenSummary();
             if (key === "presence" || key === "night") this._refreshRules();
           })
         );
@@ -3339,11 +4057,15 @@ class SafeHomePanel extends HTMLElement {
     root.querySelectorAll("[data-modtoggle]").forEach((b) => b.addEventListener("click", () => this._modToggle(b.dataset.modtoggle)));
     root.querySelectorAll("[data-go]").forEach((b) =>
       b.addEventListener("click", () => {
-        this._tab = b.dataset.go;
+        const [t, anchor] = b.dataset.go.split("#");
+        this._tab = t || this._tab;
+        if (this._tab !== "info") this._lastTab = this._tab;
         this._store("safe_home_panel_tab", this._tab);
         this._render();
+        if (anchor) this.shadowRoot.getElementById(anchor)?.scrollIntoView({ behavior: "smooth", block: "start" });
       })
     );
+    this._bindAdv(root);
     if (tab === "overview") {
       const host = root.querySelector(".cardhost");
       const make = () => {
@@ -3357,15 +4079,29 @@ class SafeHomePanel extends HTMLElement {
       else customElements.whenDefined("safe-home-tablet-card").then(() => host.isConnected && make());
     } else this._card = null;
     if (tab === "household") this._bindHousehold(root);
-    if (tab === "automation") this._bindWeek();
+    if (tab === "automation") {
+      this._bindWeek();
+      root.querySelector("details.explain")?.addEventListener("toggle", (e) => (this._explainOpen = e.target.open));
+    }
     if (tab === "security") {
       this._bindPins();
       this._bindPinSecurity(root);
     }
     if (tab === "actions") root.querySelector(".wa-info")?.addEventListener("toggle", (e) => (this._waInfoOpen = e.target.open));
-    if (tab === "sensors" || tab === "household") this._bindTypes(root);
+    if (tab === "sensors" || tab === "household") {
+      this._bindTypes(root);
+      this._bindAliases(root);
+    }
+    if (tab === "actions") this._bindTemplates(root);
     if (tab === "sensors") {
       this._bindZones(root);
+      root.querySelectorAll("[data-delay]").forEach((inp) =>
+        inp.addEventListener("input", () => {
+          const v = inp.value === "" ? 0 : Math.max(0, Math.min(3600, Math.round(Number(inp.value) || 0)));
+          this._set(inp.dataset.delay, v);
+          this._refreshTimeline();
+        })
+      );
       root.querySelectorAll("[data-sw]").forEach((b) => b.addEventListener("click", () => this._toggleSensor(b.dataset.sw, b.dataset.eid)));
       root.querySelectorAll("[data-del]").forEach((b) => b.addEventListener("click", () => this._removeSensor(b.dataset.del)));
       const search = root.querySelector(".search input");
@@ -3411,6 +4147,11 @@ class SafeHomePanel extends HTMLElement {
         this._set("ui_theme", e.target.checked ? "ha" : "safe_home");
         this._applyUiTheme();
       });
+      root.querySelector("[data-hide-off]")?.addEventListener("change", (e) => {
+        this._store("safe_home_hide_off", e.target.checked ? "1" : "0");
+        this._render();
+        this._showToast(e.target.checked ? PT("Deaktivierte Unteroptionen werden ausgeblendet") : PT("Alle Einstellungen werden angezeigt"), "ok");
+      });
       root.querySelector("[data-expand-all]")?.addEventListener("change", (e) => {
         this._store("safe_home_expand_all", e.target.checked ? "1" : "0");
         this._secState = {};
@@ -3433,11 +4174,18 @@ class SafeHomePanel extends HTMLElement {
         }
       });
     }
-    if (tab === "actions") {
+    if (tab === "overview") {
       root.querySelectorAll("[data-test]").forEach((b) => b.addEventListener("click", () => this._test(b.dataset.test)));
-      this._bindPhones();
       this._bindDrill();
       this._refreshDrill();
+      root.querySelector("[data-log-all]")?.addEventListener("click", () => {
+        this._logAll = !this._logAll;
+        this._render();
+        this.shadowRoot.getElementById("sh-log")?.scrollIntoView({ block: "start" });
+      });
+    }
+    if (tab === "actions") {
+      this._bindPhones();
       this._bindSiren(root);
       root.querySelectorAll(".wa-row [data-wa]").forEach((inp) => {
         const i = Number(inp.closest(".wa-row").dataset.i);
@@ -3461,11 +4209,12 @@ class SafeHomePanel extends HTMLElement {
         rows[rows.length - 1]?.querySelector("input")?.focus();
       });
     }
-    if (tab === "log") {
+    if (tab === "overview") {
       root.querySelectorAll("[data-lf]").forEach((b) =>
         b.addEventListener("click", () => {
           this._logFilter = b.dataset.lf;
           this._render();
+          this.shadowRoot.getElementById("sh-log")?.scrollIntoView({ block: "start" });
         })
       );
       root.querySelector("[data-reload]")?.addEventListener("click", async () => {
@@ -3478,6 +4227,8 @@ class SafeHomePanel extends HTMLElement {
 
   _updateLive() {
     if (!this._data) return;
+    // Schalter „Anwesenheit“/„Nachtzeit“ geändert -> ein-/ausgeblendete Felder anpassen
+    if (this._lastVis !== undefined && this._visSig() !== this._lastVis) return this._render();
     const wk = this.shadowRoot.querySelector(".wk");
     if (wk && wk.classList.contains("dis") !== this._presenceOn()) this._redrawWeek();
     this.shadowRoot.querySelectorAll("[data-hhlive]").forEach((el) => {
@@ -3503,8 +4254,33 @@ class SafeHomePanel extends HTMLElement {
     }
   }
 
+  /** Anzeigename – mit eigenem Namen, wenn „Eigene Vorlagen festlegen“ an ist. */
   _name(eid) {
+    if (this._draft?.custom_templates) {
+      const alias = (this._draft.sensor_names || {})[eid];
+      if (alias) return alias;
+    }
+    return this._rawName(eid);
+  }
+  _rawName(eid) {
     return this._hass.states[eid]?.attributes?.friendly_name || eid;
+  }
+  /** Eingabe für einen eigenen Namen (nur mit „Eigene Vorlagen festlegen“). */
+  _aliasField(eid) {
+    if (!this._draft?.custom_templates) return "";
+    const v = (this._draft.sensor_names || {})[eid] || "";
+    return `<input class="fb alias" data-alias="${pesc(eid)}" maxlength="60" value="${pesc(v)}" placeholder="${PT("Eigener Name (optional)")}" aria-label="${PT("Eigener Name für {name}", { name: pesc(this._rawName(eid)) })}">`;
+  }
+  _bindAliases(root) {
+    root.querySelectorAll("[data-alias]").forEach((inp) =>
+      inp.addEventListener("input", () => {
+        const names = { ...(this._draft.sensor_names || {}) };
+        const v = inp.value.replace(/\s+/g, " ").trim();
+        if (v) names[inp.dataset.alias] = v;
+        else delete names[inp.dataset.alias];
+        this._set("sensor_names", names);
+      })
+    );
   }
   _area(eid) {
     const h = this._hass;
@@ -3564,8 +4340,9 @@ async function ensureHaForm() {
 
 // Einfache Eingabefelder, falls ha-form nicht verfügbar ist
 function fallbackForm(schema, data, errors) {
-  return flatSchema(schema)
+  return schema
     .map((s) => {
+      if (s.type === "grid" && Array.isArray(s.schema)) return `<div class="fb-grid">${fallbackForm(s.schema, data, errors)}</div>`;
       const label = pesc(LABELS[s.name] ? PT(LABELS[s.name]) : s.name);
       const v = data[s.name];
       const sel = s.selector || {};
@@ -3649,8 +4426,9 @@ const PANEL_STYLE = `
 .top{position:sticky; top:0; z-index:5; display:flex; align-items:center; gap:14px; padding:14px 24px; background:rgba(7,21,56,.72); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); border-bottom:1px solid var(--sh-line)}
 .logo{width:40px; height:40px; object-fit:contain; filter:drop-shadow(0 3px 8px rgba(0,0,0,.45))}
 .ttl{flex:1; min-width:0}
-.ttl h1{margin:0; font-size:1.25rem; font-weight:800; letter-spacing:.2px}
+.ttl h1{margin:0; font-size:1.25rem; font-weight:800; letter-spacing:.2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
 .ttl span{font-size:.8rem; color:var(--sh-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:block}
+@media (max-width:520px){.top{gap:8px; padding:10px 10px 10px 8px} .top .logo{width:32px; height:32px} .ttl h1{font-size:1.05rem} .top .pill{padding:5px 10px; font-size:.75rem} .top .iconbtn{width:34px; height:34px}}
 .pill{font-size:.78rem; font-weight:700; padding:6px 12px; border-radius:999px; color:var(--tone); background:color-mix(in srgb,var(--tone) 16%, transparent); border:1px solid color-mix(in srgb,var(--tone) 45%, transparent); white-space:nowrap}
 .inst{appearance:none; background:var(--sh-surface); color:var(--sh-text); border:1px solid var(--sh-line); border-radius:10px; padding:8px 12px; font:inherit; font-size:.85rem}
 .iconbtn{all:unset; cursor:pointer; display:grid; place-items:center; width:38px; height:38px; border-radius:10px; color:var(--sh-muted)}
@@ -3817,7 +4595,8 @@ const PANEL_STYLE = `
 .tl-h{display:flex; align-items:center; gap:8px; font-size:.85rem; font-weight:700; margin-bottom:8px}
 .tl-bar{display:flex; gap:4px; border-radius:12px; overflow:hidden}
 .seg{display:flex; flex-direction:column; gap:2px; padding:10px 12px; min-width:0}
-.seg b{font-size:.72rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis} .seg span{font-size:.8rem; font-weight:700}
+.seg b{font-size:.72rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis} .seg span{font-size:.8rem; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+@media (max-width:520px){.seg{padding:8px 7px} .tl-bar{gap:3px}}
 .seg.exit{background:rgba(59,123,255,.25)} .seg.armed{background:rgba(79,141,255,.12)} .seg.entry{background:rgba(251,191,36,.2)} .seg.alarm{background:rgba(239,41,69,.25)} .seg.silent{background:rgba(239,41,69,.1); background-image:repeating-linear-gradient(135deg,rgba(239,41,69,.12) 0 6px,transparent 6px 12px)}
 .tests{display:flex; flex-wrap:wrap; gap:10px}
 .people{display:flex; flex-wrap:wrap; gap:12px; margin-bottom:16px}
@@ -4023,6 +4802,79 @@ const PANEL_STYLE = `
 .wa-info .wa-chev{transition:transform .2s} .wa-info[open] .wa-chev{transform:rotate(180deg)}
 .wa-info ul{margin:0; padding:0 18px 4px 40px; display:flex; flex-direction:column; gap:7px; font-size:.84rem; line-height:1.45; color:var(--sh-text)}
 .wa-info .btn{margin:10px 14px 14px 40px; text-decoration:none}
+/* ---------- Texte & Vorlagen (1.22) ---------- */
+.tpl-master{margin:2px 0 12px; font-weight:600}
+details.tg{margin-top:10px; border-radius:14px; border:1px solid var(--sh-line); background:var(--sh-surface); overflow:hidden}
+details.tg > summary{list-style:none; cursor:pointer; display:flex; align-items:center; gap:10px; padding:12px 14px}
+details.tg > summary::-webkit-details-marker{display:none}
+details.tg > summary > .ic:first-child{flex:none; width:19px; height:19px; color:var(--sh-accent)}
+details.tg > summary b{flex:1; font-size:.92rem}
+.tg-n{font-size:.76rem; font-weight:700; color:var(--sh-muted); white-space:nowrap}
+details.tg .wa-chev{flex:none; width:18px; height:18px; color:var(--sh-muted); transition:transform .2s}
+details.tg[open] .wa-chev{transform:rotate(180deg)}
+.tg-b{display:flex; flex-direction:column; gap:12px; padding:2px 14px 14px}
+.tpl{padding:12px; border-radius:12px; border:1px solid var(--sh-line); background:rgba(0,0,0,.12)}
+.tpl.mod{border-color:color-mix(in srgb, var(--sh-accent) 60%, transparent)}
+.tpl-h{display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:8px}
+.tpl-h b{font-size:.86rem}
+.tpl-sp{flex:1}
+.tpl-h [hidden]{display:none !important}
+.tpl-ch{display:inline-flex; align-items:center; gap:4px; font-size:.68rem; font-weight:700; text-transform:uppercase; letter-spacing:.6px; padding:3px 8px; border-radius:999px; background:var(--sh-surface2); color:var(--sh-muted)}
+.tpl-ch .ic{width:12px; height:12px}
+.tpl-ch.ch-wa{color:#4ade80} .tpl-ch.ch-tts{color:#c4b5fd} .tpl-ch.ch-push,.tpl-ch.ch-push_title{color:#93c5fd} .tpl-ch.ch-cause{color:#fcd34d}
+.tpl-in{width:100%; box-sizing:border-box; resize:vertical; min-height:40px; font:inherit; font-size:.88rem; line-height:1.45}
+.tpl-ph{display:flex; flex-wrap:wrap; gap:5px; margin-top:7px}
+.ph{all:unset; cursor:pointer; font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:.72rem; padding:3px 7px; border-radius:7px; background:var(--sh-surface2); color:var(--sh-text); border:1px solid var(--sh-line)}
+.ph:hover,.ph:focus-visible{border-color:var(--sh-accent); color:var(--sh-accent)}
+.tpl-prev{margin-top:8px; font-size:.8rem; color:var(--sh-muted); white-space:pre-wrap; line-height:1.45}
+.tpl-prev em{font-style:normal; color:var(--sh-text)}
+.fb.alias{display:block; width:100%; max-width:260px; box-sizing:border-box; margin-top:6px; padding:6px 10px; font-size:.82rem}
+:host([data-ha]) .tpl{background:var(--card-background-color)}
+:host([data-ha]) .tpl-ch.ch-wa{color:#15803d} :host([data-ha]) .tpl-ch.ch-tts{color:#6d28d9} :host([data-ha]) .tpl-ch.ch-push,:host([data-ha]) .tpl-ch.ch-push_title{color:var(--primary-color)} :host([data-ha]) .tpl-ch.ch-cause{color:#b45309}
+/* ---------- Übersichtlichkeit (1.21): Kurzfassung, Erweitert, kompakte Zahlen ---------- */
+.box-sum{margin:6px 0 0; font-size:.84rem; font-weight:600; color:var(--sh-text); opacity:.82; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden}
+.box.coll.has-sum:not(.open) .box-desc{display:none}
+.box.coll:not(.open) .box-tt p.box-sum{-webkit-line-clamp:2}
+.box.coll.open .box-sum{display:none}
+details.adv{margin-top:14px; border-top:1px dashed var(--sh-line); padding-top:4px}
+details.adv > summary{list-style:none; cursor:pointer; display:inline-flex; align-items:center; gap:6px; padding:8px 2px; font-size:.84rem; font-weight:700; color:var(--sh-accent); user-select:none}
+details.adv > summary::-webkit-details-marker{display:none}
+details.adv .adv-chev{width:16px; height:16px; transition:transform .2s} details.adv[open] .adv-chev{transform:rotate(180deg)}
+details.adv > .adv-b{padding-top:6px}
+.dl-table{display:grid; grid-template-columns:auto minmax(0,150px) minmax(0,150px); gap:8px 12px; align-items:center; margin:2px 0 16px; justify-content:start}
+.dl-table > b{display:flex; align-items:center; gap:6px; font-size:.76rem; font-weight:700; text-transform:uppercase; letter-spacing:.8px; color:var(--sh-muted)}
+.dl-table > b .ic{width:15px; height:15px}
+.dl-m{display:flex; align-items:center; gap:8px; font-size:.9rem; font-weight:600; padding-right:10px}
+.dl-m .ic{width:18px; height:18px; color:var(--sh-muted)}
+.num-f{position:relative; display:block}
+.num-f input{all:unset; box-sizing:border-box; width:100%; padding:9px 30px 9px 12px; border-radius:10px; background:var(--sh-surface); border:1px solid var(--sh-line); color:var(--sh-text); font:inherit; font-size:.95rem; font-variant-numeric:tabular-nums; text-align:right; -moz-appearance:textfield}
+.num-f input::-webkit-outer-spin-button,.num-f input::-webkit-inner-spin-button{-webkit-appearance:none; margin:0}
+.num-f input:focus{border-color:var(--sh-accent); box-shadow:0 0 0 3px color-mix(in srgb, var(--sh-accent) 25%, transparent)}
+.num-f i{position:absolute; right:12px; top:50%; transform:translateY(-50%); font-style:normal; font-size:.82rem; color:var(--sh-muted); pointer-events:none}
+.fb-grid{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:0 14px}
+.fb-grid .fb-row.inline{grid-column:1 / -1}
+.info-btn{margin-left:4px; flex:none}
+.info-btn.active{background:var(--sh-surface2); color:var(--sh-text)}
+details.explain{border-radius:18px; border:1px solid var(--sh-line); background:var(--sh-surface); overflow:hidden}
+details.explain > summary{list-style:none; cursor:pointer; display:flex; align-items:center; gap:10px; padding:16px 20px; flex-wrap:wrap}
+details.explain > summary::-webkit-details-marker{display:none}
+details.explain > summary > .ic:first-child{flex:none; width:20px; height:20px; color:var(--sh-accent)}
+details.explain > summary b{font-size:.98rem}
+details.explain > summary small{flex:1; color:var(--sh-muted); font-size:.82rem}
+details.explain .wa-chev{flex:none; width:20px; height:20px; color:var(--sh-muted); transition:transform .2s}
+details.explain[open] .wa-chev{transform:rotate(180deg)}
+details.explain > .rules{padding:0 20px 18px}
+.log-more{display:flex; justify-content:center; margin-top:10px}
+.res-ok{padding:14px 18px}
+.res-line{display:flex; align-items:center; gap:12px; flex-wrap:wrap}
+.res-line > .ic{flex:none; width:22px; height:22px; color:#34d399}
+.res-line > span{flex:1; min-width:200px; display:flex; flex-direction:column; gap:2px}
+.res-line small{color:var(--sh-muted); font-size:.82rem}
+@media (max-width:520px){
+  .dl-table{grid-template-columns:auto minmax(0,1fr) minmax(0,1fr); gap:8px; width:100%}
+  .dl-m{padding-right:2px; font-size:.84rem}
+  .fb-grid{grid-template-columns:minmax(0,1fr)}
+}
 .fb-row{display:flex; flex-direction:column; gap:6px; margin-bottom:14px; font-size:.86rem; color:var(--sh-muted)}
 .fb-checks{display:flex; flex-wrap:wrap; gap:8px 22px}
 .opt-block{margin-top:12px} .opt-block .small-note{margin:6px 0 0 26px}
@@ -4091,6 +4943,11 @@ select.fb option,select.fb optgroup{background-color:var(--sh-bg2); color:#fff}
 :host([data-ha]) .savebar > span,:host([data-ha]) .siren-sum.warn .ic,:host([data-ha]) .siren-sum.warn b{color:var(--warning-color, #b45309)}
 :host([data-ha]) .drill-h > .ic{color:var(--error-color, #db4437)}
 :host([data-ha]) .area.main{border-color:var(--divider-color)}
+:host([data-ha]) .res-line > .ic{color:var(--success-color, #16a34a)}
+:host([data-ha]) .num-f input{background:var(--card-background-color); color:var(--primary-text-color)}
+:host([data-ha]) .info-btn{color:inherit}
+:host([data-ha]) .info-btn.active{background:rgba(255,255,255,.2)}
+:host([data-ha]) details.explain{background:var(--ha-card-background, var(--card-background-color))}
 :host([data-ha]) .wk-track{background:linear-gradient(90deg,var(--divider-color) 1px,transparent 1px) 0 0/12.5% 100%, color-mix(in srgb, var(--success-color, #16a34a) 10%, transparent)}
 .beta{display:inline-block; margin-left:6px; padding:1px 7px; border-radius:6px; font-size:.7rem; font-weight:800; letter-spacing:.3px; background:#facc15; color:#3b2f00; vertical-align:middle}
 `;

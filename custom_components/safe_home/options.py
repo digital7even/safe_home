@@ -6,7 +6,8 @@ import re
 from typing import Any
 
 from . import whatsapp as wa
-from .i18n import tr
+from .i18n import is_german, tr
+from .templates import clean_names, clean_templates
 from .const import (
     CONF_AWAY_SENSORS,
     CONF_CODE,
@@ -59,6 +60,18 @@ def sanitize_options(raw: dict[str, Any], hass: Any = None) -> tuple[dict[str, A
 
         if key == CONF_ZONES:
             continue  # wird nach den Sensorlisten geprüft (Zuordnung muss eindeutig sein)
+
+        if key == "custom_templates":
+            out[key] = bool(value)
+            continue
+
+        if key == "templates":
+            out[key] = clean_templates(value, is_german(hass) if hass is not None else None)
+            continue
+
+        if key == "sensor_names":
+            out[key] = clean_names(value)
+            continue
 
         if key == "ui_theme":
             out[key] = "ha" if value == "ha" else "safe_home"

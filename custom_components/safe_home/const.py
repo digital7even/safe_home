@@ -7,7 +7,7 @@ from typing import Final
 DOMAIN: Final = "safe_home"
 NAME: Final = "Safe Home"
 MANUFACTURER: Final = "Digital7even"
-VERSION: Final = "1.20.0"
+VERSION: Final = "1.23.0"
 
 # Frontend
 FRONTEND_URL_BASE: Final = "/safe_home_static"
@@ -83,6 +83,9 @@ CONF_HH_RESOLVED: Final = "household_resolved"  # Entwarnung, wenn der Zustand e
 CONF_ZONES: Final = "zones"
 CONF_UI_THEME: Final = "ui_theme"  # "safe_home" = eigenes Design, "ha" = Home-Assistant-Design (Beta)
 CONF_PINS_ENABLED: Final = "pins_enabled"  # PIN-Funktion insgesamt an/aus
+CONF_CUSTOM_TEMPLATES: Final = "custom_templates"  # „Eigene Vorlagen festlegen“ – eigene Texte und Sensornamen aktiv
+CONF_TEMPLATES: Final = "templates"  # eigene Texte je Meldung (Schlüssel siehe templates.py)
+CONF_SENSOR_NAMES: Final = "sensor_names"  # alternativer Name je Sensor (Meldungen und Karten)
 CONF_PIN_AREAS_OFF: Final = "pin_areas_off"  # Bereiche ohne PIN ("main" = Hauptbereich, sonst Teilbereich-ID)
 CONF_PINS: Final = "pins"  # [{id, type: user|guest, user_id, name, code, start, end, enabled}] – ersetzt den allgemeinen PIN
 CONF_WEEK_ENABLED: Final = "week_enabled"  # Wochenplan (Kernzeiten) – nur aktiv, wenn „Anwesenheit“ aus ist
@@ -155,6 +158,9 @@ DEFAULTS: Final[dict] = {
     CONF_PINS_ENABLED: True,
     CONF_UI_THEME: "safe_home",
     CONF_PIN_AREAS_OFF: [],
+    CONF_CUSTOM_TEMPLATES: False,
+    CONF_TEMPLATES: {},
+    CONF_SENSOR_NAMES: {},
     CONF_WEEK_ENABLED: False,
     CONF_WEEK_PLAN: [[], [], [], [], [], [], []],
     CONF_HH_ENABLED: False,

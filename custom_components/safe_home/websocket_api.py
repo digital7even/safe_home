@@ -13,7 +13,8 @@ from homeassistant.helpers import entity_registry as er
 
 from .const import DEFAULTS, DOMAIN, VERSION
 from .frontend_resource import STATUS_KEY, async_register_now, get_status
-from .i18n import tr
+from .i18n import is_german, tr
+from .templates import catalog as template_catalog
 from .options import sanitize_options
 
 
@@ -99,6 +100,7 @@ def ws_get_config(hass: HomeAssistant, connection: websocket_api.ActiveConnectio
             "version": VERSION,
             "mobile_apps": _mobile_apps(hass),
             "drill": controller.drill_info() if controller else {"active": False},
+            "template_catalog": template_catalog(is_german(hass)),
         },
     )
 

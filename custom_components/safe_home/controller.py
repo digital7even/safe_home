@@ -34,6 +34,7 @@ from homeassistant.helpers.event import (
 from homeassistant.helpers.storage import Store
 from homeassistant.util import dt as dt_util
 
+from . import templates as tpl_mod
 from . import whatsapp as wa
 from .zone import SafeHomeZone
 from .i18n import date_format, is_german, tr
@@ -255,6 +256,34 @@ class SafeHomeController:
         """Text in der Systemsprache von Home Assistant."""
         return tr(self.hass, de, **kwargs)
 
+    # -- Eigene Vorlagen und Sensornamen ------------------------------------
+    @property
+    def custom_templates(self) -> bool:
+        return bool(self.opt("custom_templates"))
+
+    def tpl(self, key: str, fallback: str, **values: Any) -> str:
+        """Eigene Vorlage für eine Meldung – sonst der eingebaute Text (fallback)."""
+        if not self.custom_templates:
+            return fallback
+        text = (self.opt("templates") or {}).get(key)
+        if not isinstance(text, str) or not text.strip():
+            return fallback
+        now = dt_util.as_local(dt_util.utcnow())
+        base: dict[str, Any] = {
+            "name": self.name,
+            "time": now.strftime("%H:%M"),
+            "date": now.strftime("%d.%m.%Y" if is_german(self.hass) else "%Y-%m-%d"),
+        }
+        base.update(values)
+        return tpl_mod.render(text, base)
+
+    def sensor_names(self) -> dict[str, str]:
+        """Alternative Sensornamen – nur wirksam mit „Eigene Vorlagen festlegen“."""
+        if not self.custom_templates:
+            return {}
+        names = self.opt("sensor_names")
+        return dict(names) if isinstance(names, dict) else {}
+
     def ml(self, mode: str | None) -> str:
         """Name eines Modus in der Systemsprache."""
         return self.t(MODE_LABELS[mode]) if mode in MODE_LABELS else "-"
@@ -296,24 +325,30 @@ class SafeHomeController:
 
     def sensor_cause(self, entity_id: str) -> str:
         """Ursache passend zur Art, z. B. „Fenster geöffnet: Küche“."""
-        return self.t(SENSOR_CAUSE[self.sensor_type(entity_id)], name=self.friendly(entity_id))
+        typ = self.sensor_type(entity_id)
+        name = self.friendly(entity_id)
+        return self.tpl(f"cause_{typ}", self.t(SENSOR_CAUSE[typ], name=name), sensor=name)
 
     def alarm_speech(self, sensors: list[str], cause: str, zone: str | None = None) -> str:
         """Durchsage bei Alarm – je nach Art des auslösenden Melders."""
         tail = self.t("Die Bewohner werden benachrichtigt.")
         if not sensors:
             head = self.t("Achtung, Alarm im Bereich {zone}!", zone=zone) if zone else self.t("Achtung, Alarm!")
-            return f"{head} {cause}. {tail}"
+            return self.tpl("tts_alarm", f"{head} {cause}. {tail}", headline=head, detail=f"{cause}.", sensor="", cause=cause, zone=zone or "")
         eid = sensors[0]
         typ = self.sensor_type(eid)
         if typ == "water":
             head = self.t("Achtung, Wasseralarm im Bereich {zone}!", zone=zone) if zone else self.t("Achtung, Wasseralarm!")
         else:
             head = self.t("Achtung, möglicher Einbruch im Bereich {zone}!", zone=zone) if zone else self.t("Achtung, möglicher Einbruch!")
-        detail = self.t(SENSOR_SPEECH[typ], name=self.friendly(eid))
-        return f"{head} {detail} {tail}"
+        name = self.friendly(eid)
+        detail = self.tpl(f"speech_{typ}", self.t(SENSOR_SPEECH[typ], name=name), sensor=name)
+        return self.tpl("tts_alarm", f"{head} {detail} {tail}", headline=head, detail=detail, sensor=name, cause=cause, zone=zone or "")
 
     def friendly(self, entity_id: str) -> str:
+        alias = self.sensor_names().get(entity_id)
+        if alias:
+            return str(alias)
         st = self.hass.states.get(entity_id)
         if st is not None and st.attributes.get("friendly_name"):
             return str(st.attributes["friendly_name"])
@@ -468,14 +503,10 @@ class SafeHomeController:
                     "warning",
                     self.t("{mode} blockiert – offen: {names}", mode=self.ml(mode), names=names),
                 )
+                vals = {"mode": self.ml(mode), "source": source, "names": names, "zone": self.name}
                 await self._async_notify(
-                    self.t("⚠️ Scharfschalten blockiert"),
-                    self.t(
-                        "{mode} konnte nicht aktiviert werden ({source}). Offen: {names}",
-                        mode=self.ml(mode),
-                        source=source,
-                        names=names,
-                    ),
+                    self.tpl("push_blocked_title", self.t("⚠️ Scharfschalten blockiert"), **vals),
+                    self.tpl("push_blocked", self.t("{mode} konnte nicht aktiviert werden ({source}). Offen: {names}", mode=self.ml(mode), source=source, names=names), **vals),
                 )
                 self._async_update()
                 return False
@@ -504,12 +535,14 @@ class SafeHomeController:
             self._set_armed(mode, source)
 
         if open_now and self.opt(CONF_OPEN_POLICY) != OPEN_POLICY_BLOCK:
+            names = ", ".join(self.friendly(e) for e in open_now)
             await self._async_notify(
-                self.t("⚠️ Sensoren überbrückt"),
-                self.t(
-                    "Beim Aktivieren von {mode} waren offen: {names}. Sie werden überwacht, sobald sie geschlossen sind.",
+                self.tpl("push_bypass_title", self.t("⚠️ Sensoren überbrückt"), mode=self.ml(mode), names=names),
+                self.tpl(
+                    "push_bypass",
+                    self.t("Beim Aktivieren von {mode} waren offen: {names}. Sie werden überwacht, sobald sie geschlossen sind.", mode=self.ml(mode), names=names),
                     mode=self.ml(mode),
-                    names=", ".join(self.friendly(e) for e in open_now),
+                    names=names,
                 ),
             )
         return True
@@ -543,11 +576,16 @@ class SafeHomeController:
         if self._wa_alarm_active:
             self._wa_alarm_active = False
             if self.opt(CONF_WA_ALL_CLEAR) and self._wa_notified:
-                text = self.t(
-                    "✅ Entwarnung: {name} wurde um {time} Uhr ausgeschaltet ({source}).",
-                    name=self.name,
-                    time=dt_util.as_local(dt_util.utcnow()).strftime("%H:%M"),
+                text = self.tpl(
+                    "wa_all_clear",
+                    self.t(
+                        "✅ Entwarnung: {name} wurde um {time} Uhr ausgeschaltet ({source}).",
+                        name=self.name,
+                        time=dt_util.as_local(dt_util.utcnow()).strftime("%H:%M"),
+                        source=source,
+                    ),
                     source=source,
+                    zone="",
                 )
                 for rec in list(self._wa_notified):
                     self.hass.async_create_task(self._wa_send(rec, text))
@@ -559,8 +597,8 @@ class SafeHomeController:
                 CONF_NOTIFY_STATE_CHANGES
             ):
                 await self._async_notify(
-                    self.t("🏠 Safe Home unscharf"),
-                    self.t("Modus Zuhause aktiv. Ausgelöst durch: {source}", source=source),
+                    self.tpl("push_disarmed_title", self.t("🏠 Safe Home unscharf"), source=source),
+                    self.tpl("push_disarmed", self.t("Modus Zuhause aktiv. Ausgelöst durch: {source}", source=source), source=source),
                     critical=False,
                 )
         self._async_update()
@@ -606,9 +644,10 @@ class SafeHomeController:
             self.t("🚨 Safe Home Alarm"),
             f"{cause} – {dt_util.as_local(self.triggered_at).strftime(date_format(self.hass))}",
         )
+        avals = {"cause": cause, "mode": self.ml(self.armed_mode), "sensor": self._wa_sensor_text()}
         await self._async_notify(
-            self.t("🚨 ALARM – Safe Home"),
-            self.t("{cause}. Modus: {mode}.", cause=cause, mode=self.ml(self.armed_mode)),
+            self.tpl("push_alarm_title", self.t("🚨 ALARM – Safe Home"), **avals),
+            self.tpl("push_alarm", self.t("{cause}. Modus: {mode}.", cause=cause, mode=self.ml(self.armed_mode)), **avals),
             critical=True,
             with_actions=True,
             with_camera=True,
@@ -814,8 +853,13 @@ class SafeHomeController:
             if self.opt(CONF_BATTERY_NOTIFY):
                 self.hass.async_create_task(
                     self._async_notify(
-                        self.t("🔋 Batterie schwach"),
-                        self.t("{text}. Bitte bald wechseln, damit der Sensor nicht ausfällt.", text=txt),
+                        self.tpl("push_battery_title", self.t("🔋 Batterie schwach"), sensor=name, level="?" if level is None else level),
+                        self.tpl(
+                            "push_battery",
+                            self.t("{text}. Bitte bald wechseln, damit der Sensor nicht ausfällt.", text=txt),
+                            sensor=name,
+                            level="?" if level is None else level,
+                        ),
                         critical=False,
                     )
                 )
@@ -883,11 +927,13 @@ class SafeHomeController:
             self._log("warning", self.t("{n} falsche PINs – Eingabe für {m} Min. gesperrt", n=self._wrong_codes, m=minutes))
             self._async_update()
             # immer melden – unabhängig von „Bei falscher PIN-Eingabe benachrichtigen“
+            lvals = {"n": self._wrong_codes, "action": action, "m": minutes}
             await self._async_notify(
-                self.t("🔐 Mehrere falsche PINs"),
-                self.t(
-                    "{n} falsche PIN-Eingaben in Folge (zuletzt: {action}). Die PIN-Eingabe ist für {m} Minuten gesperrt.",
-                    n=self._wrong_codes, action=action, m=minutes,
+                self.tpl("push_lockout_title", self.t("🔐 Mehrere falsche PINs"), **lvals),
+                self.tpl(
+                    "push_lockout",
+                    self.t("{n} falsche PIN-Eingaben in Folge (zuletzt: {action}). Die PIN-Eingabe ist für {m} Minuten gesperrt.", **lvals),
+                    **lvals,
                 ),
                 critical=True,
             )
@@ -895,8 +941,8 @@ class SafeHomeController:
         self._async_update()
         if self.opt(CONF_NOTIFY_WRONG_CODE):
             await self._async_notify(
-                self.t("🔐 Falscher PIN"),
-                self.t("Es wurde ein falscher PIN eingegeben ({action}).", action=action),
+                self.tpl("push_wrong_code_title", self.t("🔐 Falscher PIN"), action=action),
+                self.tpl("push_wrong_code", self.t("Es wurde ein falscher PIN eingegeben ({action}).", action=action), action=action),
                 critical=False,
             )
 
@@ -1014,14 +1060,12 @@ class SafeHomeController:
         self._async_update()
         if self.opt(CONF_NOTIFY_STATE_CHANGES):
             icon = "🌙" if mode == MODE_NIGHT else "🛡️"
+            count = len(self.sensors_for_mode(mode)) - len(self.bypassed)
+            svals = {"icon": icon, "mode": self.ml(mode), "source": source, "count": count}
             self.hass.async_create_task(
                 self._async_notify(
-                    f"{icon} Safe Home: {self.ml(mode)}",
-                    self.t(
-                        "Alarmanlage ist scharf ({source}). {count} Sensoren aktiv.",
-                        source=source,
-                        count=len(self.sensors_for_mode(mode)) - len(self.bypassed),
-                    ),
+                    self.tpl("push_armed_title", f"{icon} Safe Home: {self.ml(mode)}", **svals),
+                    self.tpl("push_armed", self.t("Alarmanlage ist scharf ({source}). {count} Sensoren aktiv.", source=source, count=count), **svals),
                     critical=False,
                 )
             )
@@ -1153,8 +1197,13 @@ class SafeHomeController:
             if self.opt(CONF_TAMPER_NOTIFY):
                 self.hass.async_create_task(
                     self._async_notify(
-                        self.t("📡 Sensor nicht erreichbar"),
-                        self.t("{name} meldet sich nicht mehr, während Safe Home scharf ist.", name=self.friendly(entity_id)),
+                        self.tpl("push_tamper_title", self.t("📡 Sensor nicht erreichbar"), sensor=self.friendly(entity_id), zone=self.name),
+                        self.tpl(
+                            "push_tamper",
+                            self.t("{name} meldet sich nicht mehr, während Safe Home scharf ist.", name=self.friendly(entity_id)),
+                            sensor=self.friendly(entity_id),
+                            zone=self.name,
+                        ),
                         critical=False,
                     )
                 )
@@ -1212,9 +1261,9 @@ class SafeHomeController:
                 "main",
                 lambda: self.state == S.PENDING,
                 lambda: self.delay_until,
-                lambda n, first: self.t("Bitte Alarmanlage innerhalb von {delay} Sekunden ausschalten.", delay=n)
+                lambda n, first: self.tpl("tts_entry_first", self.t("Bitte Alarmanlage innerhalb von {delay} Sekunden ausschalten.", delay=n), delay=n)
                 if first
-                else self.t("Bitte Alarmanlage ausschalten – noch {n} Sekunden.", n=n),
+                else self.tpl("tts_entry_repeat", self.t("Bitte Alarmanlage ausschalten – noch {n} Sekunden.", n=n), n=n),
             )
             return
 
@@ -1407,20 +1456,34 @@ class SafeHomeController:
             return list(zone.cfg.get("sirens") or [])
         return shared
 
+    def _siren_is_on(self, entity_id: str) -> bool:
+        """Läuft die Sirene laut Home Assistant?"""
+        st = self.hass.states.get(entity_id)
+        return st is not None and st.state == STATE_ON
+
     async def _async_sirens(self, on: bool, source: str = "main") -> None:
-        """Sirenen einer Quelle ein-/ausschalten. Eine Sirene geht erst aus, wenn keine Quelle sie mehr braucht."""
+        """Sirenen einer Quelle ein-/ausschalten. Eine Sirene geht erst aus, wenn keine Quelle sie mehr braucht.
+
+        Ausgeschaltet werden nur Sirenen, die Safe Home selbst eingeschaltet hat oder die gerade laufen.
+        Manche Sirenen (z. B. Tuya/Zigbee) lösen bei einem „Aus“-Befehl im ausgeschalteten Zustand selbst aus –
+        früher passierte das bei jedem Umschalten auf Zuhause.
+        """
+        ours = {e for ents in self._siren_sources.values() for e in ents}
         if on:
             targets = self.sirens_for(source)
             self._siren_sources[source] = targets
         elif source == "*":
-            targets = sorted({e for ents in self._siren_sources.values() for e in ents} | set(self.opt(CONF_SIRENS) or []))
+            candidates = sorted(ours | set(self.opt(CONF_SIRENS) or []))
             self._siren_sources.clear()
+            targets = [e for e in candidates if e in ours or self._siren_is_on(e)]
         else:
             gone = self._siren_sources.pop(source, None)
-            if gone is None:
-                gone = self.sirens_for(source)
             still = {e for ents in self._siren_sources.values() for e in ents}
-            targets = [e for e in gone if e not in still]
+            if gone is None:
+                # Nicht von Safe Home eingeschaltet (z. B. nach einem Neustart): nur, wenn sie wirklich läuft
+                targets = [e for e in self.sirens_for(source) if e not in still and self._siren_is_on(e)]
+            else:
+                targets = [e for e in gone if e not in still]
         self.siren_active = any(self._siren_sources.values())
         if not targets:
             return
@@ -1561,7 +1624,7 @@ class SafeHomeController:
             # Weitere Meldungen (Schaltungen, Sabotage, falscher PIN …) an die Sofort-Empfänger
             for rec in self._wa_recipients():
                 if rec.delay == 0:
-                    self.hass.async_create_task(self._wa_send(rec, f"{title}\n{message}"))
+                    self.hass.async_create_task(self._wa_send(rec, self.tpl("wa_other", f"{title}\n{message}", title=title, message=message)))
         services = list(self.opt(CONF_NOTIFY_SERVICES) or [])
         if not services:
             return
@@ -1699,14 +1762,14 @@ class SafeHomeController:
             self._async_update()
             if self.opt(CONF_TTS_HOUSEHOLD):
                 if self.sensor_type(entity_id) == "water":
-                    speech = self.t("Achtung, Wasseralarm! Wasser erkannt: {name}. Bitte sofort prüfen.", name=name)
+                    speech = self.tpl("tts_household_water", self.t("Achtung, Wasseralarm! Wasser erkannt: {name}. Bitte sofort prüfen.", name=name), sensor=name, state=label)
                 else:
-                    speech = self.t("Achtung! {name}: {state} erkannt. Bitte prüfen.", name=name, state=label)
+                    speech = self.tpl("tts_household", self.t("Achtung! {name}: {state} erkannt. Bitte prüfen.", name=name, state=label), sensor=name, state=label)
                 self.hass.async_create_task(self._async_speak(speech))
             self.hass.async_create_task(
                 self._async_household_notify(
-                    self.t("💧 Haushalt: {name}", name=name),
-                    self.t("{name}: {state} erkannt ({time} Uhr). Bitte prüfen!", name=name, state=label, time=now),
+                    self.tpl("push_household_title", self.t("💧 Haushalt: {name}", name=name), sensor=name, state=label),
+                    self.tpl("push_household", self.t("{name}: {state} erkannt ({time} Uhr). Bitte prüfen!", name=name, state=label, time=now), sensor=name, state=label),
                     critical=True,
                 )
             )
@@ -1726,8 +1789,8 @@ class SafeHomeController:
             if self.opt(CONF_HH_RESOLVED):
                 self.hass.async_create_task(
                     self._async_household_notify(
-                        self.t("✅ Haushalt: {name}", name=name),
-                        self.t("Entwarnung: {name} ist wieder {state} ({time} Uhr).", name=name, state=label, time=now),
+                        self.tpl("push_household_ok_title", self.t("✅ Haushalt: {name}", name=name), sensor=name, state=label),
+                        self.tpl("push_household_ok", self.t("Entwarnung: {name} ist wieder {state} ({time} Uhr).", name=name, state=label, time=now), sensor=name, state=label),
                         critical=False,
                     )
                 )
@@ -1739,7 +1802,7 @@ class SafeHomeController:
         if self.opt(CONF_HH_WHATSAPP) and self.opt(CONF_WA_ENABLED):
             for rec in self._wa_recipients():
                 if rec.delay == 0:
-                    await self._wa_send(rec, f"{title}\n{message}")
+                    await self._wa_send(rec, self.tpl("wa_other", f"{title}\n{message}", title=title, message=message))
 
     # ------------------------------------------------------------------
     # Teilbereiche: gemeinsame Ausgänge
@@ -1780,9 +1843,10 @@ class SafeHomeController:
             self.t("🚨 Safe Home Alarm – {zone}", zone=zone.name),
             f"{full} – {dt_util.as_local(zone.triggered_at or dt_util.utcnow()).strftime(date_format(self.hass))}",
         )
+        zvals = {"zone": zone.name, "cause": cause, "sensor": ", ".join(self.friendly(e) for e in zone.trigger_sensors)}
         await self._async_notify(
-            self.t("🚨 ALARM – {zone}", zone=zone.name),
-            self.t("{cause}. Bereich: {zone}.", cause=cause, zone=zone.name),
+            self.tpl("push_zone_alarm_title", self.t("🚨 ALARM – {zone}", zone=zone.name), **zvals),
+            self.tpl("push_zone_alarm", self.t("{cause}. Bereich: {zone}.", cause=cause, zone=zone.name), **zvals),
             critical=True,
             with_actions=True,
             with_camera=True,
@@ -1924,11 +1988,17 @@ class SafeHomeController:
             for unsub in tr["timers"]:
                 unsub()
             if self.opt(CONF_WA_ALL_CLEAR) and tr["notified"]:
-                text = self.t(
-                    "✅ Entwarnung: {name} wurde um {time} Uhr ausgeschaltet ({source}).",
+                text = self.tpl(
+                    "wa_all_clear",
+                    self.t(
+                        "✅ Entwarnung: {name} wurde um {time} Uhr ausgeschaltet ({source}).",
+                        name=f"{self.name} – {zone.name}",
+                        time=dt_util.as_local(dt_util.utcnow()).strftime("%H:%M"),
+                        source=source,
+                    ),
                     name=f"{self.name} – {zone.name}",
-                    time=dt_util.as_local(dt_util.utcnow()).strftime("%H:%M"),
                     source=source,
+                    zone=zone.name,
                 )
                 for rec in tr["notified"]:
                     self.hass.async_create_task(self._wa_send(rec, text))
@@ -2057,8 +2127,11 @@ class SafeHomeController:
         return self._wa_format(values, escalation_minutes)
 
     def _wa_format(self, values: dict[str, Any], escalation_minutes: int = 0) -> str:
-        template = str(self.opt(CONF_WA_MESSAGE) or "").strip() or self.t(
-            "🚨 ALARM AUSGELÖST! 🚨\nAuslöser: {sensor}\nZeitpunkt: {date} um {time} Uhr\nModus: {mode}\nBitte sofort prüfen!"
+        custom = (self.opt("templates") or {}).get("wa_alarm") if self.custom_templates else None
+        template = (
+            (custom if isinstance(custom, str) and custom.strip() else "")
+            or str(self.opt(CONF_WA_MESSAGE) or "").strip()
+            or self.t("🚨 ALARM AUSGELÖST! 🚨\nAuslöser: {sensor}\nZeitpunkt: {date} um {time} Uhr\nModus: {mode}\nBitte sofort prüfen!")
         )
 
         class _Keep(dict):
@@ -2070,7 +2143,12 @@ class SafeHomeController:
         except (ValueError, IndexError):
             text = template
         if escalation_minutes:
-            text = self.t("⏰ Erinnerung: Der Alarm ist seit {minutes} Minuten nicht zurückgestellt.", minutes=escalation_minutes) + "\n\n" + text
+            reminder = self.tpl(
+                "wa_reminder",
+                self.t("⏰ Erinnerung: Der Alarm ist seit {minutes} Minuten nicht zurückgestellt.", minutes=escalation_minutes),
+                minutes=escalation_minutes,
+            )
+            text = reminder + "\n\n" + text
         return text
 
     async def _wa_send(self, rec: wa.Recipient, text: str) -> bool:

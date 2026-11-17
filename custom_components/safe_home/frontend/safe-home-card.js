@@ -3,7 +3,7 @@
  * Mit ❤️ entwickelt in Deutschland von Digital7even
  * https://github.com/digital7even
  */
-const SH_VERSION = "1.20.0";
+const SH_VERSION = "1.23.0";
 // Build-Kennung aus der Lade-URL (zeigt, ob die aktuelle Datei wirklich geladen wurde)
 const SH_BUILD = (() => {
   try {
@@ -596,7 +596,7 @@ header{position:relative; display:flex; align-items:center; gap:12px}
 .autorow{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:12px}
 .tog{all:unset; box-sizing:border-box; cursor:pointer; display:flex; align-items:center; gap:8px; padding:11px 10px; border-radius:14px; background:var(--sh-surface); border:1px solid var(--sh-line); color:var(--sh-muted); min-width:0}
 .tog span{flex:1; display:flex; flex-direction:column; min-width:0}
-.tog b{font-size:.85rem; color:var(--sh-text); font-weight:600; line-height:1.2; overflow-wrap:anywhere; hyphens:auto; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden}
+.tog b{font-size:.85rem; color:var(--sh-text); font-weight:600; line-height:1.2; overflow-wrap:break-word; hyphens:auto; -webkit-hyphens:auto; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden}
 .tog small{font-size:.72rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
 .tog.on{color:color-mix(in srgb, var(--sh-accent) 55%, #fff); border-color:color-mix(in srgb, var(--sh-accent) 55%, transparent); background:color-mix(in srgb, var(--sh-accent) 14%, transparent)}
 .sw{position:relative; width:32px; height:18px; border-radius:99px; background:rgba(255,255,255,.15); flex:none; transition:background .2s}
@@ -715,6 +715,18 @@ const STYLE_HA = `
 :host([data-ha]) .sq-ring{background:conic-gradient(var(--tone) calc(var(--p) * 1%), color-mix(in srgb, var(--primary-text-color) 12%, transparent) 0)}
 :host([data-ha]) .sq-bring{background:conic-gradient(var(--primary-text-color) calc(var(--p) * 1%), transparent 0)}
 :host([data-ha]) .av{color:var(--text-primary-color, #fff); background:var(--primary-color); border-color:var(--divider-color)}
+`;
+const STYLE_ALARM = `
+/* ---------- Alarm: ganze Karte rot ---------- */
+ha-card.is-alarm{background:linear-gradient(160deg,#9f1239 0%,#7f1d1d 45%,#450a0a 100%) !important; border-color:rgba(248,113,113,.75) !important;
+  --sh-surface:rgba(255,255,255,.08); --sh-surface2:rgba(255,255,255,.14); --sh-line:rgba(254,202,202,.28); --sh-muted:#fecaca; --sh-alarm:#ffe4e6;
+  animation:shAlarmCard 1.1s ease-in-out infinite alternate}
+ha-card.is-alarm .glow{display:none}
+@keyframes shAlarmCard{from{box-shadow:0 0 0 1px rgba(248,113,113,.5), 0 10px 30px rgba(127,29,29,.45)} to{box-shadow:0 0 0 3px rgba(248,113,113,.9), 0 0 42px rgba(239,41,69,.75)}}
+@media (prefers-reduced-motion:reduce){ha-card.is-alarm{animation:none}}
+:host([data-ha]) .l-square .sq-alarm{color:var(--primary-text-color)}
+:host([data-ha]) ha-card.is-alarm{background:color-mix(in srgb, var(--error-color, #db4437) 26%, var(--ha-card-background, var(--card-background-color, #fff))) !important; border-color:var(--error-color, #db4437) !important;
+  --sh-surface:color-mix(in srgb, var(--primary-text-color) 7%, transparent); --sh-surface2:color-mix(in srgb, var(--primary-text-color) 12%, transparent); --sh-line:color-mix(in srgb, var(--error-color, #db4437) 45%, transparent); --sh-muted:var(--primary-text-color); --sh-alarm:var(--primary-text-color)}
 `;
 const STYLE_SQUARE = `
 ha-card.l-square{aspect-ratio:1/1; padding:0; container-type:size; display:flex; flex-direction:column; overflow:hidden}
@@ -1355,8 +1367,10 @@ class SafeHomeCard extends HTMLElement {
     return ent || "alarm_control_panel.safe_home";
   }
 
+  /** Sensorname – eigener Name aus Safe Home (falls festgelegt), sonst der Name aus Home Assistant. */
   _name(eid) {
-    return this._hass?.states?.[eid]?.attributes?.friendly_name || eid;
+    const alias = this._hass?.states?.[this._entityId?.()]?.attributes?.sensor_names?.[eid];
+    return alias || this._hass?.states?.[eid]?.attributes?.friendly_name || eid;
   }
 
   _fmtTime(iso) {
@@ -1901,10 +1915,12 @@ class SafeHomeCard extends HTMLElement {
     const haTheme = a.ui_theme === "ha";
     this.toggleAttribute("data-ha", haTheme);
     const bgStyle = haTheme ? "" : esc(shColorCard(cfg));
+    // Alarm (Hauptbereich oder ein Teilbereich): ganze Karte rot – beim Entschärfen wieder normal
+    const isAlarm = state === "triggered" || (Array.isArray(a.zones) && a.zones.some((z) => z.state === "triggered"));
 
     this.shadowRoot.innerHTML = `
-      <style>${STYLE}${STYLE_HA}${layout === "compact" ? STYLE_COMPACT : ""}${layout === "square" ? STYLE_SQUARE : ""}${layout === "tablet" ? STYLE_TABLET : ""}${layout === "custom" ? STYLE_TABLET + STYLE_CUSTOM : ""}</style>
-      <ha-card class="tone-${info.tone} l-${layout} ${layout === "custom" ? this._customClasses() : ""}" style="${bgStyle}">
+      <style>${STYLE}${STYLE_HA}${STYLE_ALARM}${layout === "compact" ? STYLE_COMPACT : ""}${layout === "square" ? STYLE_SQUARE : ""}${layout === "tablet" ? STYLE_TABLET : ""}${layout === "custom" ? STYLE_TABLET + STYLE_CUSTOM : ""}</style>
+      <ha-card lang="${SH_LANG}" class="tone-${info.tone} l-${layout} ${layout === "custom" ? this._customClasses() : ""} ${isAlarm ? "is-alarm" : ""}" style="${bgStyle}">
         <div class="glow" style="background:radial-gradient(closest-side, ${shRgba(TONE_RGB[info.tone] || TONE_RGB.off, layout === "custom" ? 0.28 : 0.3)}, rgba(0,0,0,0))"></div>
         ${body}
         ${keypadHtml}

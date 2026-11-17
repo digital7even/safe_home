@@ -2,6 +2,73 @@
 
 All notable changes to Safe Home. German version: [CHANGELOG.de.md](CHANGELOG.de.md)
 
+## 1.23.0 – Siren no longer sounds when switching to Home
+
+### Fixed
+- **Siren went off when disarming:** every switch to *Home* (from Away or Night) sent a "turn off" command to all sirens – even when they were already off. Some sirens (e.g. Tuya/Zigbee) react to that by sounding. As the siren's state didn't change, nothing showed up in the logbook.
+- Safe Home now only turns off sirens it switched on itself or that are actually running. A running siren is still reliably turned off when disarming or silencing – also after a restart.
+
+## 1.22.0 – Custom texts, custom sensor names, red alarm cards
+
+### New
+- **Texts & templates:** under *Alarm actions → Texts & templates* you set the wording of push, WhatsApp and announcements yourself. Turn it on with **Use custom templates** – without the tick everything stays as before.
+  - **47 templates in six groups:** alarm, entry delay, armed & disarmed, notices, household and texts per sensor type (cause and announcement for door, window, motion, presence, water, camera).
+  - Every field is **pre-filled with the previous default text**. Empty or unchanged texts keep using the default; **Default** resets one field, *Reset all texts to default* resets everything.
+  - **Placeholders** such as `{sensor}`, `{cause}`, `{mode}`, `{zone}`, `{time}`, `{date}`, `{name}` to tap, with explanation and **live preview**. Unknown placeholders stay as they are, broken braces never cause an error.
+  - The WhatsApp alarm text is now part of the templates. A previous custom text stays valid and appears there pre-filled.
+- **Custom sensor names:** with *Use custom templates*, every sensor under *Areas & sensors* and *Household* has a **Custom name** field.
+  - It is used in push, WhatsApp, announcements, the log and on all dashboard cards.
+  - If none is set, the name from Home Assistant applies.
+- **An alarm turns the whole card red:** during an alarm (main area or partition) the complete background of every card turns red and pulses gently. When disarmed, everything returns to normal. In the Home Assistant theme the red is derived from the theme's error colour.
+
+### Changed
+- **README fully reworked:** *"Safe Home – your autonomous alarm system"*, with overview, gallery, quick start and reorganised chapters. Outdated details (e.g. menu paths, number of cards) are corrected.
+- **New images** in `docs/`: all cards, the alarm state, badge, square card, the settings page and the template editor.
+
+### Fixed
+- Cards: long German words like *"Anwesenheit"* now hyphenate properly on narrow cards instead of breaking mid-word.
+- Settings page on smartphones: the title *"Safe Home"* was cut off since 1.21.0. The header is now more compact.
+
+## 1.21.0 – Tidier settings page
+
+### New
+- **Summary in collapsed sections:** instead of the fixed description, each collapsed section shows what is set, e.g. *"1 siren · Away + Night · Alarm 3 min"*, *"1 smartphone · critical"* or *"WhatsApp – Off"*. The summary updates when you collapse the section.
+- **Hide sub-options of disabled features:** new option under *Info → Display* (default: on). When a feature is switched off, its settings are hidden until you switch it on. This applies to, among others:
+  - WhatsApp (recipients, options, message text)
+  - Household (*Notify via* and sensors)
+  - Announcements, Alexa and announcement repeat
+  - Battery monitoring
+  - Siren time window
+  - Notification options while no smartphone is selected
+  - Presence detection, weekly schedule and night mode when they are off or paused
+  - PIN function (PIN areas, settings and *Manage PINs*)
+- **"Advanced":** rarely used settings sit behind an *Advanced* link in their section:
+  - *Siren & lights:* time window, per-sensor siren, re-arm afterwards
+  - *Notifications:* disarm button, camera snapshot
+  - *WhatsApp:* custom message text
+  - *PIN entry:* lock after wrong PINs
+
+  If one of them has an error, *Advanced* opens automatically.
+
+### Changed
+- **6 instead of 8 tabs:**
+  - **Log** is now on the **Overview**: the latest 5 events, all 30 with *Show all*, still filterable.
+  - **Testing** is now the **Function test** on the **Overview**, including *Trigger an alarm from a sensor*.
+  - **Info** opens via the **ⓘ** at the top right. Tapping it again returns to the previous tab.
+- **Delays as a compact table:** leaving and coming home for Away and Night in four small fields instead of four full-width input rows.
+- **Alarm and siren duration** sit side by side.
+- **Explanations collapsed:**
+  - *How Safe Home acts on its own* is now the expandable *How does the automation work?*.
+  - The TextMeBot instructions are in the *Important notes on WhatsApp*.
+  - The permanent note under *Manage PINs* is gone.
+- **Info:**
+  - The Android widget is collapsed.
+  - When the dashboard resource is fine, there is only a green line. The detailed box only appears when there is a problem.
+
+### Fixed
+- Delay timeline: with 0 seconds the labels overlapped. At 0 s the segment is now left out and it says *"monitored at once"*. On smartphones long labels are shortened.
+- The title at the top no longer wraps on narrow screens.
+
 ## 1.20.0 – Tab bar stays in place
 
 ### Fixed

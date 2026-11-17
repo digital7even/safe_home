@@ -122,6 +122,7 @@ class SafeHomeAlarmPanel(SafeHomeEntity, AlarmControlPanelEntity):
             "siren_active": c.siren_active,
             "silence_code_required": c.silence_code_required,
             "ui_theme": c.opt("ui_theme") or "safe_home",
+            "sensor_names": c.sensor_names(),
             "battery_low": [{"entity": e, "level": lvl} for e, lvl in sorted(c.battery_low.items())],
             "week_active": c.week_active(),
             "code_locked_until": c.code_locked_until.isoformat() if c.code_locked else None,

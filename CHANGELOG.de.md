@@ -2,6 +2,73 @@
 
 Alle wichtigen Änderungen an Safe Home. English version: [CHANGELOG.md](CHANGELOG.md)
 
+## 1.23.0 – Sirene heult beim Umschalten auf Zuhause nicht mehr
+
+### Behoben
+- **Sirene ging beim Entschärfen an:** Bei jedem Wechsel auf *Zuhause* (von Unterwegs oder Nacht) bekamen alle Sirenen einen „Aus“-Befehl – auch wenn sie gar nicht liefen. Manche Sirenen (z. B. Tuya/Zigbee) lösen darauf selbst aus. Weil sich der Zustand der Sirene nicht änderte, stand im Logbuch nichts.
+- Safe Home schaltet jetzt nur noch Sirenen aus, die es selbst eingeschaltet hat oder die gerade laufen. Eine laufende Sirene wird beim Entschärfen und Stummschalten weiterhin sicher ausgeschaltet – auch nach einem Neustart.
+
+## 1.22.0 – Eigene Texte, eigene Sensornamen, rote Alarm-Karten
+
+### Neu
+- **Texte & Vorlagen:** Unter *Alarm-Aktionen → Texte & Vorlagen* bestimmst du den Wortlaut von Push, WhatsApp und Ansagen selbst. Aktiviert wird das mit **Eigene Vorlagen festlegen** – ohne Häkchen bleibt alles wie bisher.
+  - **47 Vorlagen in sechs Gruppen:** Alarm, Eingangsverzögerung, Scharf & unscharf, Hinweise, Haushalt und Texte je Melder-Art (Auslöser und Durchsage für Tür, Fenster, Bewegung, Präsenz, Wasser, Kamera).
+  - Jedes Feld ist mit dem **bisherigen Standardtext vorausgefüllt**. Leere oder unveränderte Texte nutzen weiter den Standard; **Standard** setzt ein Feld zurück, *Alle Texte auf Standard* alles.
+  - **Platzhalter** wie `{sensor}`, `{cause}`, `{mode}`, `{zone}`, `{time}`, `{date}`, `{name}` zum Antippen, mit Erklärung und **Live-Vorschau**. Unbekannte Platzhalter bleiben stehen, fehlerhafte Klammern führen nie zu einem Fehler.
+  - Der WhatsApp-Alarmtext ist jetzt Teil der Vorlagen. Ein bisher eigener Text bleibt gültig und erscheint dort vorausgefüllt.
+- **Eigene Sensornamen:** Mit *Eigene Vorlagen festlegen* hat jeder Sensor unter *Bereiche & Sensoren* und *Haushalt* ein Feld **Eigener Name**.
+  - Er wird in Push, WhatsApp, Ansagen, Protokoll und auf allen Dashboard-Karten verwendet.
+  - Ist keiner gesetzt, gilt der Name aus Home Assistant.
+- **Alarm färbt die ganze Karte rot:** Bei einem Alarm (Hauptbereich oder Teilbereich) wird bei allen Karten der komplette Hintergrund rot und pulsiert leicht. Beim Entschärfen ist alles wieder normal. Im Home-Assistant-Design wird die Rotfärbung aus dessen Fehlerfarbe abgeleitet.
+
+### Geändert
+- **README komplett überarbeitet:** *„Safe Home – deine autonome Alarmanlage“*, mit Überblick, Galerie, Schnellstart und neu gegliederten Kapiteln. Veraltete Angaben (z. B. Menüpfade, Anzahl der Karten) sind korrigiert.
+- **Neue Bilder** in `docs/`: alle Karten, der Alarmzustand, Badge, Quadrat, die Einstellungsseite und der Vorlagen-Editor.
+
+### Behoben
+- Karten: Lange Wörter wie *„Anwesenheit“* brechen bei schmalen Karten jetzt mit Silbentrennung um statt mitten im Wort.
+- Einstellungsseite auf dem Smartphone: Der Titel *„Safe Home“* wurde seit 1.21.0 abgeschnitten. Die Kopfzeile ist jetzt kompakter.
+
+## 1.21.0 – Übersichtlichere Einstellungsseite
+
+### Neu
+- **Kurzfassung in zugeklappten Abschnitten:** Statt der festen Beschreibung zeigt jeder zugeklappte Abschnitt, was eingestellt ist, z. B. *„1 Sirene · Unterwegs + Nacht · Alarm 3 Min.“*, *„1 Smartphone · kritisch“* oder *„WhatsApp – Aus“*. Die Kurzfassung aktualisiert sich beim Zuklappen.
+- **Deaktivierte Unteroptionen ausblenden:** Neue Option unter *Info → Darstellung* (Standard: an). Ist eine Funktion ausgeschaltet, werden ihre Einstellungen ausgeblendet, bis du sie einschaltest. Das gilt u. a. für:
+  - WhatsApp (Empfänger, Optionen, Nachrichtentext)
+  - Haushalt (*Melden per* und Sensoren)
+  - Sprachansagen, Alexa und Wiederholung der Ansage
+  - Batterie-Überwachung
+  - Zeitfenster der Sirene
+  - Benachrichtigungs-Optionen, solange kein Smartphone gewählt ist
+  - Anwesenheit, Wochenplan und Nachtmodus, wenn sie aus oder pausiert sind
+  - PIN-Funktion (PIN-Bereiche, Einstellungen und *PINs verwalten*)
+- **„Erweitert“:** Selten genutzte Einstellungen stehen hinter einem Link *Erweitert* im Abschnitt:
+  - *Sirene & Licht:* Zeitfenster, Sirene je Sensor, danach wieder scharf
+  - *Benachrichtigungen:* Entschärfen-Taste, Kamerabild
+  - *WhatsApp:* eigener Nachrichtentext
+  - *PIN-Eingabe:* Sperre nach falschen PINs
+
+  Bei einem Fehler darin öffnet sich *Erweitert* automatisch.
+
+### Geändert
+- **6 statt 8 Reiter:**
+  - **Protokoll** steht jetzt in der **Übersicht**: die letzten 5 Ereignisse, mit *Alle anzeigen* alle 30, weiterhin filterbar.
+  - **Testen** steht als **Funktionstest** in der **Übersicht**, inklusive *Alarm von einem Sensor auslösen*.
+  - **Info** öffnet sich über das **ⓘ** oben rechts. Ein zweiter Tipp darauf führt zurück zum vorherigen Reiter.
+- **Verzögerungen als kompakte Tabelle:** Verlassen und Heimkommen für Unterwegs und Nacht in vier kleinen Feldern statt vier Eingabezeilen über die volle Breite.
+- **Alarm- und Sirenendauer** stehen nebeneinander.
+- **Erklärtexte eingeklappt:**
+  - *So handelt Safe Home selbstständig* ist jetzt das aufklappbare *Wie arbeitet die Automatik?*.
+  - Die TextMeBot-Anleitung steht in den *Wichtigen Hinweisen zu WhatsApp*.
+  - Der Dauerhinweis bei *PINs verwalten* entfällt.
+- **Info:**
+  - Das Android-Widget ist zugeklappt.
+  - Ist die Dashboard-Ressource in Ordnung, steht dort nur noch eine grüne Zeile. Das ausführliche Kästchen erscheint nur bei einem Problem.
+
+### Behoben
+- Ablauf-Grafik der Verzögerungen: Bei 0 Sekunden überlappten sich die Beschriftungen. Bei 0 s entfällt der Abschnitt jetzt, und es steht *„sofort überwacht“* da. Auf dem Smartphone werden lange Beschriftungen gekürzt.
+- Der Titel oben bricht auf schmalen Bildschirmen nicht mehr um.
+
 ## 1.20.0 – Reiterleiste bleibt stehen
 
 ### Behoben

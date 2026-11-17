@@ -181,9 +181,10 @@ class SafeHomeZone:
             names = ", ".join(self.ctrl.friendly(e) for e in open_now)
             if self.ctrl.opt("open_sensor_policy") == "block":
                 self._log("warning", self.t("Scharfschalten blockiert – offen: {names}", names=names))
+                vals = {"zone": self.name, "mode": self.name, "names": names, "source": source}
                 await self.ctrl._async_notify(  # noqa: SLF001
-                    self.t("⚠️ {zone}: Scharfschalten blockiert", zone=self.name),
-                    self.t("Offen: {names} ({source})", names=names, source=source),
+                    self.ctrl.tpl("push_blocked_title", self.t("⚠️ {zone}: Scharfschalten blockiert", zone=self.name), **vals),
+                    self.ctrl.tpl("push_blocked", self.t("Offen: {names} ({source})", names=names, source=source), **vals),
                 )
                 self._update()
                 return False
@@ -336,8 +337,13 @@ class SafeHomeZone:
             if self.ctrl.opt("tamper_notify"):
                 self.hass.async_create_task(
                     self.ctrl._async_notify(  # noqa: SLF001
-                        self.t("📡 {zone}: Sensor nicht erreichbar", zone=self.name),
-                        self.t("{name} meldet sich nicht mehr, während {zone} scharf ist.", name=name, zone=self.name),
+                        self.ctrl.tpl("push_tamper_title", self.t("📡 {zone}: Sensor nicht erreichbar", zone=self.name), sensor=name, zone=self.name),
+                        self.ctrl.tpl(
+                            "push_tamper",
+                            self.t("{name} meldet sich nicht mehr, während {zone} scharf ist.", name=name, zone=self.name),
+                            sensor=name,
+                            zone=self.name,
+                        ),
                     )
                 )
             self._update()
@@ -376,9 +382,11 @@ class SafeHomeZone:
                 f"zone_{self.id}",
                 lambda: self.state == S.PENDING,
                 lambda: self.delay_until,
-                lambda n, first: self.t("{zone}: Bitte innerhalb von {delay} Sekunden ausschalten.", zone=self.name, delay=n)
+                lambda n, first: self.ctrl.tpl(
+                    "tts_zone_entry_first", self.t("{zone}: Bitte innerhalb von {delay} Sekunden ausschalten.", zone=self.name, delay=n), zone=self.name, delay=n
+                )
                 if first
-                else self.t("{zone}: Bitte ausschalten – noch {n} Sekunden.", zone=self.name, n=n),
+                else self.ctrl.tpl("tts_zone_entry_repeat", self.t("{zone}: Bitte ausschalten – noch {n} Sekunden.", zone=self.name, n=n), zone=self.name, n=n),
             )
             return
         self.hass.async_create_task(self.async_trigger(cause))
